@@ -8,6 +8,8 @@ This module implements an agent that roams around a track following random
 waypoints and avoiding other vehicles. The agent also responds to traffic lights.
 It can also make use of the global route planner to follow a specifed route
 """
+import sys
+sys.path.append('C:\\Users\\kj746\\carla\\PythonAPI\\carla\\agents\\navigation\\')  # local_planner.py가 있는 디렉토리 경로로 수정
 
 
 import carla
