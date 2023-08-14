@@ -167,6 +167,13 @@ class World(object):
                 sys.exit(1)
             spawn_points = self.map.get_spawn_points()
             spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+
+            # spawn_point.location = carla.Location(-18794.724609, 14129.426758, 0.03) #랜덤 선택된 스폰포인트에 location을 바꿔주는 방법
+
+            # spawn_Location = carla.Location(-18794.724609, 14129.426758, 0.03) # transform Location 파라미터 설정
+            # spawn_Rotation = carla.Rotation(0.0, 0.0, 0.0) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
+            # spawn_point = carla.Transform(spawn_Location, spawn_Rotation) #플레이어 스폰 지점 좌표 설정
+
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
             self.modify_vehicle_physics(self.player)
 
