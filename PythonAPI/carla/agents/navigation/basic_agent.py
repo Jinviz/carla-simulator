@@ -140,7 +140,7 @@ class BasicAgent(object):
         """Get method for protected member local planner"""
         return self._global_planner
 
-    def set_destination(self, end_location, start_location=None):
+    def set_destination(self, end_location, start_location): #start_location = UNNONE
         """
         This method creates a list of waypoints between a starting and ending location,
         based on the route returned by the global router, and adds it to the local planner.
