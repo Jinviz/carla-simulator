@@ -747,9 +747,17 @@ def game_loop(args):
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
         # Set the agent destination
-        spawn_points = world.map.get_spawn_points()
-        destination = random.choice(spawn_points).location
-        agent.set_destination(destination)
+        spawn_points = world.map.get_spawn_points() #spawn_point 추출
+        # choice_spawn_points = random.choice(spawn_points) #spawn_point 랜덤 선택
+        # destination = choice_spawn_points.location #선택된 spawn_point의 X,Y,Z 좌표 추출 Transform -> Location
+        # destination = random.choice(spawn_points).location #[init code]위에 두 줄
+
+        destination = carla.Location(-65.452431, -14997.158203, 0.03) #목적지 좌표 설정
+        start_point = carla.Location(-18794.724609, 14129.426758, 0.03) #시작 지점 자표 설정
+        agent.set_destination(destination, start_point) # agent 모듈 set_destination
+
+        print("destination!!!!: ", destination)
+        # print("spawn_points!!!!: ", choice_spawn_pointss)
 
         clock = pygame.time.Clock()
 
@@ -772,6 +780,7 @@ def game_loop(args):
                     world.hud.notification("Target reached", seconds=4.0)
                     print("The target has been reached, searching for another target")
                 else:
+                    world.hud.notification("Target reached", seconds=4.0)
                     print("The target has been reached, stopping the simulation")
                     break
 
