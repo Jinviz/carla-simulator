@@ -165,17 +165,14 @@ class World(object):
                 print('There are no spawn points available in your map/town.')
                 print('Please add some Vehicle Spawn Point to your UE4 scene.')
                 sys.exit(1)
-            spawn_points = self.map.get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
 
-            # spawn_point.location = carla.Location(-18794.724609, 14129.426758, 0.03) #랜덤 선택된 스폰포인트에 location을 바꿔주는 방법
+            spawn_Location = carla.Location(387.942505, 41.775497, 0.299875) # transform Location 파라미터 설정
+            spawn_Rotation = carla.Rotation(0.000000, -0.027893, 0.000000) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
+            spawn_point = carla.Transform(spawn_Location, spawn_Rotation) #플레이어 스폰 지점 좌표 설정
 
-            # spawn_Location = carla.Location(-18794.724609, 14129.426758, 0.03) # transform Location 파라미터 설정
-            # spawn_Rotation = carla.Rotation(0.0, 0.0, 0.0) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
-            # spawn_point = carla.Transform(spawn_Location, spawn_Rotation) #플레이어 스폰 지점 좌표 설정
-
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-            self.modify_vehicle_physics(self.player)
+            self.player = self.world.try_spawn_actor(blueprint, spawn_point) #[init.code] 액터 스폰 메서드
+            self.modify_vehicle_physics(self.player) #[init.code]
+            print("현재 위치는 : ", self.player.get_transform())
 
         if self._args.sync:
             self.world.tick()
@@ -487,12 +484,14 @@ class CollisionSensor(object):
 
     def __init__(self, parent_actor, hud):
         """Constructor method"""
+        print("parent_actor!!!!!!!!!!!!!! : ", parent_actor, "hud!!!!!!!!!!! : ", hud)
         self.sensor = None
         self.history = []
         self._parent = parent_actor
         self.hud = hud
         world = self._parent.get_world()
         blueprint = world.get_blueprint_library().find('sensor.other.collision')
+        print("위에 이상 없음")
         self.sensor = world.spawn_actor(blueprint, carla.Transform(), attach_to=self._parent)
         # We need to pass the lambda a weak reference to
         # self to avoid circular reference.
@@ -754,17 +753,17 @@ def game_loop(args):
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
         # Set the agent destination
-        spawn_points = world.map.get_spawn_points() #spawn_point 추출
+
+        # spawn_points = world.map.get_spawn_points() #spawn_point 추출
         # choice_spawn_points = random.choice(spawn_points) #spawn_point 랜덤 선택
         # destination = choice_spawn_points.location #선택된 spawn_point의 X,Y,Z 좌표 추출 Transform -> Location
         # destination = random.choice(spawn_points).location #[init code]위에 두 줄
 
         destination = carla.Location(-65.452431, -14997.158203, 0.03) #목적지 좌표 설정
-        start_point = carla.Location(-18794.724609, 14129.426758, 0.03) #시작 지점 자표 설정
-        agent.set_destination(destination, start_point) # agent 모듈 set_destination
+        # start_point = carla.Location(-18794.724609, 14129.426758, 0.03) #시작 지점 자표 설정
+        agent.set_destination(destination) # agent 모듈 set_destination
 
-        print("destination!!!!: ", destination)
-        # print("spawn_points!!!!: ", choice_spawn_pointss)
+        print("설정한 목적지는 : ", destination)
 
         clock = pygame.time.Clock()
 
@@ -782,10 +781,12 @@ def game_loop(args):
             pygame.display.flip()
 
             if agent.done():
+                # agent.loop==TRUE 이면 다음 경로 랜덤 지정
                 if args.loop:
                     agent.set_destination(random.choice(spawn_points).location)
                     world.hud.notification("Target reached", seconds=4.0)
                     print("The target has been reached, searching for another target")
+                # agent.loop==FALSE 이면 다음 경로 주행 종료
                 else:
                     world.hud.notification("Target reached", seconds=4.0)
                     print("The target has been reached, stopping the simulation")
