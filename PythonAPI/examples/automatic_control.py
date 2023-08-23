@@ -754,6 +754,9 @@ def game_loop(args):
         elif args.agent == "Behavior":
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
+        # Set target speed
+        agent = BasicAgent(world.player, 80)
+        agent.set_target_speed(80)
 
         # Set the agent destination
 
