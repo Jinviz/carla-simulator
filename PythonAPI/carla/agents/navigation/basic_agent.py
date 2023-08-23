@@ -29,7 +29,7 @@ class BasicAgent(object):
     as well as to change its parameters in case a different driving mode is desired.
     """
 
-    def __init__(self, vehicle, target_speed=20, opt_dict={}, map_inst=None, grp_inst=None):
+    def __init__(self, vehicle, target_speed=80, opt_dict={}, map_inst=None, grp_inst=None):
         """
         Initialization the agent paramters, the local and the global planner.
 
@@ -140,7 +140,7 @@ class BasicAgent(object):
         """Get method for protected member local planner"""
         return self._global_planner
 
-    def set_destination(self, end_location, start_location): #start_location = UNNONE
+    def set_destination(self, end_location, start_location = None): # 시작 위치 디폴트 None
         """
         This method creates a list of waypoints between a starting and ending location,
         based on the route returned by the global router, and adds it to the local planner.
@@ -160,7 +160,11 @@ class BasicAgent(object):
         start_waypoint = self._map.get_waypoint(start_location)
         end_waypoint = self._map.get_waypoint(end_location)
 
-        route_trace = self.trace_route(start_waypoint, end_waypoint)
+        route_trace = self.trace_route(start_waypoint, end_waypoint) #[init.code]
+        # route_trace = [self._map.get_waypoint(end_location)]
+        # print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
+        # for i, waypoint in enumerate(route_trace):
+        #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
         self._local_planner.set_global_plan(route_trace, clean_queue=clean_queue)
 
     def set_global_plan(self, plan, stop_waypoint_creation=True, clean_queue=True):

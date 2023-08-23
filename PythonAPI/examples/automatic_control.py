@@ -166,13 +166,14 @@ class World(object):
                 print('Please add some Vehicle Spawn Point to your UE4 scene.')
                 sys.exit(1)
 
-            spawn_Location = carla.Location(387.942505, 41.775497, 0.299875) # transform Location 파라미터 설정
-            spawn_Rotation = carla.Rotation(0.000000, -0.027893, 0.000000) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
-            spawn_point = carla.Transform(spawn_Location, spawn_Rotation) #플레이어 스폰 지점 좌표 설정
-
+            spawn_points = self.map.get_spawn_points()
+            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            # spawn_Location = carla.Location(387.942505, 41.775497, 0.299875) # Town06 transform Location 파라미터 설정
+            # spawn_Location = carla.Location(-668.225586, 20467.431641, 1) #Town03
+            # spawn_Rotation = carla.Rotation(0.000000, -0.027893, 0.000000) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
+            # spawn_point = carla.Transform(spawn_Location, spawn_Rotation) #플레이어 스폰 지점 좌표 설정
             self.player = self.world.try_spawn_actor(blueprint, spawn_point) #[init.code] 액터 스폰 메서드
             self.modify_vehicle_physics(self.player) #[init.code]
-            print("현재 위치는 : ", self.player.get_transform())
 
         if self._args.sync:
             self.world.tick()
@@ -188,6 +189,9 @@ class World(object):
         self.camera_manager.set_sensor(cam_index, notify=False)
         actor_type = get_actor_display_name(self.player)
         self.hud.notification(actor_type)
+
+        print("현재 위치의 carla.Transform 값은 : ", self.player.get_transform())
+        print("\n현재 위치의 carla.Location 값은 : ", self.player.get_location())
 
     def next_weather(self, reverse=False):
         """Get next weather setting"""
@@ -484,14 +488,12 @@ class CollisionSensor(object):
 
     def __init__(self, parent_actor, hud):
         """Constructor method"""
-        print("parent_actor!!!!!!!!!!!!!! : ", parent_actor, "hud!!!!!!!!!!! : ", hud)
         self.sensor = None
         self.history = []
         self._parent = parent_actor
         self.hud = hud
         world = self._parent.get_world()
         blueprint = world.get_blueprint_library().find('sensor.other.collision')
-        print("위에 이상 없음")
         self.sensor = world.spawn_actor(blueprint, carla.Transform(), attach_to=self._parent)
         # We need to pass the lambda a weak reference to
         # self to avoid circular reference.
@@ -741,7 +743,7 @@ def game_loop(args):
         world = World(client.get_world(), hud, args)
         controller = KeyboardControl(world)
         if args.agent == "Basic":
-            agent = BasicAgent(world.player, 30)
+            agent = BasicAgent(world.player, 80)
             agent.follow_speed_limits(True)
         elif args.agent == "Constant":
             agent = ConstantVelocityAgent(world.player, 30)
@@ -752,14 +754,16 @@ def game_loop(args):
         elif args.agent == "Behavior":
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
+
         # Set the agent destination
 
         # spawn_points = world.map.get_spawn_points() #spawn_point 추출
+        # destination = random.choice(spawn_points).location  # [init code] 밑에 두 줄
         # choice_spawn_points = random.choice(spawn_points) #spawn_point 랜덤 선택
         # destination = choice_spawn_points.location #선택된 spawn_point의 X,Y,Z 좌표 추출 Transform -> Location
-        # destination = random.choice(spawn_points).location #[init code]위에 두 줄
 
-        destination = carla.Location(-65.452431, -14997.158203, 0.03) #목적지 좌표 설정
+        destination = carla.Location(-2097.756348,-121.789009, 38.733543) #Town03 목적지 좌표 설정
+        # destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 목적지 좌표 설정
         # start_point = carla.Location(-18794.724609, 14129.426758, 0.03) #시작 지점 자표 설정
         agent.set_destination(destination) # agent 모듈 set_destination
 
@@ -864,7 +868,7 @@ def main():
         "-a", "--agent", type=str,
         choices=["Behavior", "Basic", "Constant"],
         help="select which agent to run",
-        default="Behavior")
+        default="Basic")
     argparser.add_argument(
         '-b', '--behavior', type=str,
         choices=["cautious", "normal", "aggressive"],
