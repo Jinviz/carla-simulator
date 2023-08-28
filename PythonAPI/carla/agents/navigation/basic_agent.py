@@ -150,6 +150,8 @@ class BasicAgent(object):
             :param end_location (carla.Location): final location of the route
             :param start_location (carla.Location): starting location of the route
         """
+
+        #
         if not start_location:
             start_location = self._local_planner.target_waypoint.transform.location
             clean_queue = True
@@ -157,14 +159,24 @@ class BasicAgent(object):
             start_location = self._vehicle.get_location()
             clean_queue = False
 
+        # 시작점과 도착점의 좌표값을 웨이포인트로 반환
         start_waypoint = self._map.get_waypoint(start_location)
         end_waypoint = self._map.get_waypoint(end_location)
 
-        route_trace = self.trace_route(start_waypoint, end_waypoint) #[init.code]
-        # route_trace = [self._map.get_waypoint(end_location)]
-        # print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
-        # for i, waypoint in enumerate(route_trace):
-        #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
+        # trace_route() 시작점과 도착점 사이의 웨이포인트 리스트 반환
+        pre_route_trace = self.trace_route(start_waypoint, end_waypoint)
+
+        # 웨이포인트 초기화
+        route_trace = pre_route_trace[1::4]
+
+        # 웨이포인트 반환 개수 받아오기
+        print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
+
+        # 모든 웨이포인트 출력
+        for i, waypoint in enumerate(route_trace):
+            print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
+
+        # 웨이포인트 리스트를 전달하여 주행 플랜 동작
         self._local_planner.set_global_plan(route_trace, clean_queue=clean_queue)
 
     def set_global_plan(self, plan, stop_waypoint_creation=True, clean_queue=True):
