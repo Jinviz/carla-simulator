@@ -44,7 +44,10 @@ class GlobalRoutePlanner(object):
         from origin to destination
         """
         route_trace = []
-        route = self._path_search(origin, destination)
+        route = self._path_search(origin, destination) # A* 알고리즘으로 최단 경로 계산 , 리턴값 로드ID
+        print("####### route 출력 : ", route, "#######\n")
+        print("####### route 데이터타입 : ", type(route), "#######\n")
+        print("####### route 길이 : ", len(route), "#######\n")
         current_waypoint = self._wmap.get_waypoint(origin)
         destination_waypoint = self._wmap.get_waypoint(destination)
 
@@ -72,9 +75,13 @@ class GlobalRoutePlanner(object):
                 for waypoint in path[closest_index:]:
                     current_waypoint = waypoint
                     route_trace.append((current_waypoint, road_option))
-                    if len(route)-i <= 2 and waypoint.transform.location.distance(destination) < 2*self._sampling_resolution:
+                    if (len(route)-i <= 2
+                            and waypoint.transform.location.distance(destination) < 2*self._sampling_resolution):
                         break
-                    elif len(route)-i <= 2 and current_waypoint.road_id == destination_waypoint.road_id and current_waypoint.section_id == destination_waypoint.section_id and current_waypoint.lane_id == destination_waypoint.lane_id:
+                    elif (len(route)-i <= 2
+                          and current_waypoint.road_id == destination_waypoint.road_id
+                          and current_waypoint.section_id == destination_waypoint.section_id
+                          and current_waypoint.lane_id == destination_waypoint.lane_id):
                         destination_index = self._find_closest_in_list(destination_waypoint, path)
                         if closest_index > destination_index:
                             break

@@ -151,7 +151,7 @@ class BasicAgent(object):
             :param start_location (carla.Location): starting location of the route
         """
 
-        #
+        # 시작점 디폴트(None)일 때
         if not start_location:
             start_location = self._local_planner.target_waypoint.transform.location
             clean_queue = True
@@ -159,15 +159,70 @@ class BasicAgent(object):
             start_location = self._vehicle.get_location()
             clean_queue = False
 
-        # 시작점과 도착점의 좌표값을 웨이포인트로 반환
-        start_waypoint = self._map.get_waypoint(start_location)
-        end_waypoint = self._map.get_waypoint(end_location)
+        ### 최단 거리 루트 설정 ###
 
-        # trace_route() 시작점과 도착점 사이의 웨이포인트 리스트 반환
-        pre_route_trace = self.trace_route(start_waypoint, end_waypoint)
+        # # 시작점과 도착점의 좌표값을 웨이포인트로 반환
+        # start_waypoint = self._map.get_waypoint(start_location)
+        # end_waypoint = self._map.get_waypoint(end_location)
+        #
+        # # trace_route() 시작점과 도착점 사이의 웨이포인트 리스트 반환
+        # route_trace = self.trace_route(start_waypoint, end_waypoint)
 
-        # 웨이포인트 초기화
-        route_trace = pre_route_trace[1::4]
+        ### 임의의 루트 설정 ###
+
+        # 좌표값 리스트 생성
+        coords = [
+            (35.5000, -23.5000, 0.03),
+            (29.10114258, -23.66969727, 0.03),
+            (23.80326416, -23.83102051, 0.03),
+            (15.93711304, -24.05556152, 0.03),
+            (10.74207764, -26.4500, 0.03),
+            (9.27413574, -30.56651404, 0.03),
+            (9.27413574, -36.36651404, 0.03),
+            (9.27413574, -41.566514648, 0.03),
+            (9.27413574, -50.366514648, 0.03),
+            (9.27413574, -61.266514648, 0.03),
+            (-5.77, 44.6, 0.03),
+            (9.27413574, -70.000, 0.03),
+            (9.27413574, -80.000, 0.03),
+            (9.27413574, -90.000, 0.03),
+            (9.27413574, -100.000, 0.03),
+            (10.07413574, -109.4651464, 0.03),
+            (10.53281738, -116.48056641, 0.03),
+            (11.03859619, -121.67415039, 0.03),
+            (13.4094104, -129.83527344, 0.03),
+            (15.28406616, -141.01099609, 0.03),
+            (10.40459351, -147.85853516, 0.03),
+            (3.0000, -152.1900, 0.03)
+        ]
+
+        # 좌표 값 carla 좌표 객체로 저장
+        carla_locations = []
+
+        for crds in coords:
+            locations = carla.Location(crds[0], crds[1], crds[2]) # 좌표값 carla.location 객체화
+            carla_locations.append(locations) # carla.locations 배열에 저장
+
+        # carla 좌표 객체를 웨이포인트로 반환
+        waypoints = []
+
+        for location in carla_locations:
+            waypoint = self._map.get_waypoint(location)
+            waypoints.append(waypoint)
+
+        # 루트 플랜[(waypoint, roadoption)] 저장을 위한 route_trace 생성
+        route_trace = []
+
+        # waypoints 리스트에서 순차적으로 trace_route 호출
+        for i in range(len(waypoints) - 1):
+            start_waypoint = waypoints[i]
+            end_waypoint = waypoints[i + 1]
+
+            # trace_route 호출
+            segment_trace = self.trace_route(start_waypoint, end_waypoint)
+
+            # segment_trace를 route_trace에 추가
+            route_trace.extend(segment_trace)
 
         # 웨이포인트 반환 개수 받아오기
         print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
