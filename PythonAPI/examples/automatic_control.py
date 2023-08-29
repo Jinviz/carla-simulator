@@ -163,17 +163,29 @@ class World(object):
         while self.player is None:
             if not self.map.get_spawn_points():
                 print('There are no spawn points available in your map/town.')
-                print('Please add some Vehicle Spawn Point to your UE4 scene.')
+                print('Please add some Vehicle Spawn Point to yosur UE4 scene.')
                 sys.exit(1)
 
+            # 맵의 스폰 지점 정보 가져오기
             spawn_points = self.map.get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
-            # spawn_Location = carla.Location(387.942505, 41.775497, 0.299875) # Town06 transform Location 파라미터 설정
-            # spawn_Location = carla.Location(-668.225586, 20467.431641, 1) #Town03
+
+            # 랜덤으로 스폰 지점 선택
+            # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+
+            # 스폰위치 설정
+            spawn_Location = carla.Location(49.72725098, -23.11807861, 0.3) # Town06 짧은 경로
+            # spawn_Location = carla.Location(-126.060703,138.844150,0.3) # Town06 긴 경로
             # spawn_Rotation = carla.Rotation(0.000000, -0.027893, 0.000000) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
-            # spawn_point = carla.Transform(spawn_Location, spawn_Rotation) #플레이어 스폰 지점 좌표 설정
-            self.player = self.world.try_spawn_actor(blueprint, spawn_point) #[init.code] 액터 스폰 메서드
-            self.modify_vehicle_physics(self.player) #[init.code]
+            spawn_point = carla.Transform(spawn_Location) #플레이어 스폰 지점 좌표 설정
+
+            # 액터 스폰
+            self.player = self.world.try_spawn_actor(blueprint, spawn_point)
+
+            self.modify_vehicle_physics(self.player)
+
+        # 스폰지점 위치 출력
+        # print("######### 랜덤 초이스된 스폰포인트 : ", spawn_point, "######### \n")
+        print("######### 설정한 스폰포인트 : ", spawn_point, "######### \n")
 
         if self._args.sync:
             self.world.tick()
@@ -190,8 +202,7 @@ class World(object):
         actor_type = get_actor_display_name(self.player)
         self.hud.notification(actor_type)
 
-        print("현재 위치의 carla.Transform 값은 : ", self.player.get_transform())
-        print("\n현재 위치의 carla.Location 값은 : ", self.player.get_location())
+        print("######### 스폰된 위치는 : ", self.player.get_location() , "######### \n")
 
     def next_weather(self, reverse=False):
         """Get next weather setting"""
@@ -743,7 +754,7 @@ def game_loop(args):
         world = World(client.get_world(), hud, args)
         controller = KeyboardControl(world)
         if args.agent == "Basic":
-            agent = BasicAgent(world.player, 80)
+            agent = BasicAgent(world.player, 30)
             agent.follow_speed_limits(True)
         elif args.agent == "Constant":
             agent = ConstantVelocityAgent(world.player, 30)
@@ -754,23 +765,26 @@ def game_loop(args):
         elif args.agent == "Behavior":
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
-        # Set target speed
-        agent = BasicAgent(world.player, 80)
+        # 차량 속도 설정
+        agent = BasicAgent(world.player, 30)
         agent.set_target_speed(80)
 
-        # Set the agent destination
+        # 맵의 스폰 지점 가져오기
+        spawn_points = world.map.get_spawn_points()
+        print("######### 총 " + str(len(spawn_points)) + "개의 스폰포인트 ######### \n")
+        # 스폰 지점 랜덤 선택 후 목적지로 설정
+        # destination = random.choice(spawn_points).location
 
-        # spawn_points = world.map.get_spawn_points() #spawn_point 추출
-        # destination = random.choice(spawn_points).location  # [init code] 밑에 두 줄
-        # choice_spawn_points = random.choice(spawn_points) #spawn_point 랜덤 선택
-        # destination = choice_spawn_points.location #선택된 spawn_point의 X,Y,Z 좌표 추출 Transform -> Location
+        # 목적지 위치 설정
+        # destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
+        # destination = carla.Location(3, -152, 0.03) # Town06 기본 목적지 설정
+        destination = carla.Location(10.7, -69.99, 0.03) # Town06 기본 목적지 설정
 
-        destination = carla.Location(-2097.756348,-121.789009, 38.733543) #Town03 목적지 좌표 설정
-        # destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 목적지 좌표 설정
-        # start_point = carla.Location(-18794.724609, 14129.426758, 0.03) #시작 지점 자표 설정
-        agent.set_destination(destination) # agent 모듈 set_destination
+        # basic_agent.py의 set_destination()
+        agent.set_destination(destination)
 
-        print("설정한 목적지는 : ", destination)
+        # 목적지 좌표 출력
+        print("######### 설정한 목적지는 : ", destination, "######### \n")
 
         clock = pygame.time.Clock()
 
@@ -797,6 +811,7 @@ def game_loop(args):
                 else:
                     world.hud.notification("Target reached", seconds=4.0)
                     print("The target has been reached, stopping the simulation")
+                    print("######### 도착한 지점의 좌표는 : ", world.player.get_location(), "######### \n")
                     break
 
             control = agent.run_step()
