@@ -202,8 +202,6 @@ class World(object):
         actor_type = get_actor_display_name(self.player)
         self.hud.notification(actor_type)
 
-        print("######### 스폰된 위치는 : ", self.player.get_location() , "######### \n")
-
     def next_weather(self, reverse=False):
         """Get next weather setting"""
         self._weather_index += -1 if reverse else 1
@@ -769,22 +767,56 @@ def game_loop(args):
         agent = BasicAgent(world.player, 30)
         agent.set_target_speed(80)
 
-        # 맵의 스폰 지점 가져오기
-        spawn_points = world.map.get_spawn_points()
-        print("######### 총 " + str(len(spawn_points)) + "개의 스폰포인트 ######### \n")
-        # 스폰 지점 랜덤 선택 후 목적지로 설정
-        # destination = random.choice(spawn_points).location
-
-        # 목적지 위치 설정
-        # destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
+        # # 맵의 스폰 지점 가져오기
+        # spawn_points = world.map.get_spawn_points()
+        # print("######### 총 " + str(len(spawn_points)) + "개의 스폰포인트 ######### \n")
+        #
+        # # 스폰 지점 랜덤 선택 후 목적지로 설정
+        # # destination = random.choice(spawn_points).location
+        #
+        # # 목적지 위치 설정
+        # # destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
         # destination = carla.Location(3, -152, 0.03) # Town06 기본 목적지 설정
-        destination = carla.Location(10.7, -69.99, 0.03) # Town06 기본 목적지 설정
+        #
+        # # 목적지 경로 설정
+        # agent.set_destination(destination)
 
-        # basic_agent.py의 set_destination()
-        agent.set_destination(destination)
+        # 좌표 리스트 생성
+        coords = [
+            (35.5000, -23.5000, 0.03),
+            (29.10114258, -23.66969727, 0.03),
+            (23.80326416, -23.83102051, 0.03),
+            (15.93711304, -24.05556152, 0.03),
+            (10.74207764, -26.4500, 0.03),
+            (9.27413574, -30.56651404, 0.03),
+            (9.27413574, -36.36651404, 0.03),
+            (9.27413574, -41.566514648, 0.03),
+            (9.27413574, -50.366514648, 0.03),
+            (9.27413574, -61.266514648, 0.03),
+            (-5.77, 44.6, 0.03),
+            (9.27413574, -70.000, 0.03),
+            (9.27413574, -80.000, 0.03),
+            (9.27413574, -90.000, 0.03),
+            (9.27413574, -100.000, 0.03),
+            (10.07413574, -109.4651464, 0.03),
+            (10.53281738, -116.48056641, 0.03),
+            (11.03859619, -121.67415039, 0.03),
+            (13.4094104, -129.83527344, 0.03),
+            (15.28406616, -141.01099609, 0.03),
+            (10.40459351, -147.85853516, 0.03),
+            (3.0000, -152.1900, 0.03)
+        ]
+
+        # 커스텀 루트 플랜
+        agent.set_custom_route(coords)
 
         # 목적지 좌표 출력
-        print("######### 설정한 목적지는 : ", destination, "######### \n")
+        print("######### 설정한 목적지는 : ",
+            carla.Location(
+            coords[len(coords)-1][0],
+            coords[len(coords)-1][1],
+            coords[len(coords)-1][2]
+            ), "######### \n")
 
         clock = pygame.time.Clock()
 
