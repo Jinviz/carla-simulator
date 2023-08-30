@@ -145,11 +145,25 @@ class World(object):
         cam_pos_id = self.camera_manager.transform_index if self.camera_manager is not None else 0
 
         # Get a random blueprint.
-        blueprint = random.choice(get_actor_blueprints(self.world, self._actor_filter, self._actor_generation))
+        # blueprint = random.choice(get_actor_blueprints(self.world, self._actor_filter, self._actor_generation))
+        # vehicle.mercedes.coupe_2020
+
+        # 랜덤하게 차량 색상 부여
+        # if blueprint.has_attribute('color'):
+        #     color = random.choice(blueprint.get_attribute('color').recommended_values)
+        #     blueprint.set_attribute('color', color)
+        #     print("##### 컬러 : ", color, "###### \n")
+        #     print("##### 컬러타입 : ", type(color), "###### \n")
+
+
+        # Select Vehicle blueprint
+        blueprint_library = self.world.get_blueprint_library()
+        blueprint = random.choice(blueprint_library.filter('vehicle.mercedes.coupe_2020'))
+
         blueprint.set_attribute('role_name', 'hero')
-        if blueprint.has_attribute('color'):
-            color = random.choice(blueprint.get_attribute('color').recommended_values)
-            blueprint.set_attribute('color', color)
+        # 차량 색상 부여
+        blueprint.set_attribute('color', "0,21,81") # blue color
+
 
         # Spawn the player.
         if self.player is not None:
