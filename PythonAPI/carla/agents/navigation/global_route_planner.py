@@ -11,6 +11,7 @@ This module provides GlobalRoutePlanner implementation.
 import math
 import numpy as np
 import networkx as nx
+import matplotlib.pyplot as plt
 
 import carla
 from local_planner import RoadOption
@@ -28,6 +29,7 @@ class GlobalRoutePlanner(object):
         self._graph = None
         self._id_map = None
         self._road_id_to_edge = None
+        self.len_edge = 0
 
         self._intersection_end_node = -1
         self._previous_decision = RoadOption.VOID
@@ -44,16 +46,19 @@ class GlobalRoutePlanner(object):
         from origin to destination
         """
         route_trace = []
-        route = self._path_search(origin, destination) # A* 알고리즘으로 최단 경로 계산 , 리턴값 로드ID
-        print("####### route 출력 : ", route, "#######\n")
-        print("####### route 데이터타입 : ", type(route), "#######\n")
-        print("####### route 길이 : ", len(route), "#######\n")
+        route = self._path_search(origin, destination) # A* 알고리즘으로 최단 경로 계산 , 리턴값 노드ID
         current_waypoint = self._wmap.get_waypoint(origin)
         destination_waypoint = self._wmap.get_waypoint(destination)
 
         for i in range(len(route) - 1):
-            road_option = self._turn_decision(i, route)
-            edge = self._graph.edges[route[i], route[i+1]]
+            road_option = self._turn_decision(i, route) # 해당 로드의 로드ID 별 로드옵션 선정
+            # print("======================================================================================")
+            # print("========= road_option : ", road_option, "=========\n")
+            # print("========= road_option type : ", type(road_option), "=========\n")
+            # print("======================================================================================")
+            edge = self._graph.edges[route[i], route[i+1]] # 해당 로드의 로드ID에 속한 웨이포인트 가져오기
+            # print("============ edge : ", edge , "============\n")
+
             path = []
 
             if edge['type'] != RoadOption.LANEFOLLOW and edge['type'] != RoadOption.VOID:
@@ -85,6 +90,15 @@ class GlobalRoutePlanner(object):
                         destination_index = self._find_closest_in_list(destination_waypoint, path)
                         if closest_index > destination_index:
                             break
+
+            for i in range(len(route_trace) - 1):
+                print("=====", i, "번째 route_trace ", route_trace[i], "========")
+                print("========================================================")
+
+            print("======================================================================================")
+            print("========= route_trace type : ", type(route_trace), "=========")
+            print("========= route_trace[0] type : ", type(route_trace[0]), "=========")
+            print("======================================================================================")
 
         return route_trace
 
@@ -280,6 +294,9 @@ class GlobalRoutePlanner(object):
             edge = self._road_id_to_edge[waypoint.road_id][waypoint.section_id][waypoint.lane_id]
         except KeyError:
             pass
+        # print("#######  edge 출력 : ", edge[0], "#######\n")
+        # print("#######  edge 출력 : ", edge[1], "#######\n")
+
         return edge
 
     def _distance_heuristic(self, n1, n2):
@@ -300,12 +317,32 @@ class GlobalRoutePlanner(object):
         return      :   path as list of node ids (as int) of the graph self._graph
         connecting origin and destination
         """
+        # _localize()로 웨이포인트가 속해 있는 해당 도로 세그먼트의 road.id, section_id, lane_id가 포함된 엣지를 받아옴
         start, end = self._localize(origin), self._localize(destination)
+        # print("####### start edge 출력 : ", start, "#######\n")
+        # print("####### end edge 출력 : ", end, "#######\n")
+        # print("#######  edge type 출력 : ", type(end), "#######\n")
+        # print("#######  start, end 출력 : ", start, "#######\n")
+        # print("#######  start, end 출력 : ", end, "#######\n")
+        # print("#######  start, end 출력 : ", type(start), "#######\n")
+        # print("#######  start, end 출력 : ", type(start), "#######\n")
+
 
         route = nx.astar_path(
             self._graph, source=start[0], target=end[0],
             heuristic=self._distance_heuristic, weight='length')
         route.append(end[1])
+
+        # print("#######  _path_search.route 출력 : ", route, "#######\n")
+        # print("#######  _path_search.route 출력 : ", type(route), "#######\n")
+
+        # # 그래프 시각화
+        # pos = nx.spring_layout(self._graph)  # 노드의 위치 결정
+        # nx.draw(self._graph, pos, with_labels=True, node_size=100, node_color='lightblue')
+        #
+        # # 그래프를 화면에 표시
+        # plt.show()
+
         return route
 
     def _successive_last_intersection_edge(self, index, route):

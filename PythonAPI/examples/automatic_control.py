@@ -160,9 +160,9 @@ class World(object):
         blueprint_library = self.world.get_blueprint_library()
         blueprint = random.choice(blueprint_library.filter('vehicle.mercedes.coupe_2020'))
 
-        blueprint.set_attribute('role_name', 'hero')
         # 차량 색상 부여
         blueprint.set_attribute('color', "0,21,81") # blue color
+        blueprint.set_attribute('role_name', 'hero')
 
 
         # Spawn the player.
@@ -180,26 +180,27 @@ class World(object):
                 print('Please add some Vehicle Spawn Point to yosur UE4 scene.')
                 sys.exit(1)
 
-            # 맵의 스폰 지점 정보 가져오기
-            spawn_points = self.map.get_spawn_points()
-
-            # 랜덤으로 스폰 지점 선택
+            # # 맵의 스폰 지점 정보 가져오기
+            # spawn_points = self.map.get_spawn_points()
+            #
+            # # 랜덤으로 스폰 지점 선택
             # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
 
             # 스폰위치 설정
-            spawn_Location = carla.Location(49.72725098, -23.11807861, 0.3) # Town06 짧은 경로
+            # spawn_Location = carla.Location(49.72725098, -23.11807861, 0.3) # Town06 짧은 경로
             # spawn_Location = carla.Location(-126.060703,138.844150,0.3) # Town06 긴 경로
             # spawn_Rotation = carla.Rotation(0.000000, -0.027893, 0.000000) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
+
+            spawn_Location = carla.Location(115.44, -17.60, 0.03) # set_custom_route 테스트
             spawn_point = carla.Transform(spawn_Location) #플레이어 스폰 지점 좌표 설정
 
             # 액터 스폰
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-
+            # 차량 물리 법칙 적용
             self.modify_vehicle_physics(self.player)
 
         # 스폰지점 위치 출력
-        # print("######### 랜덤 초이스된 스폰포인트 : ", spawn_point, "######### \n")
-        print("######### 설정한 스폰포인트 : ", spawn_point, "######### \n")
+        print("######### 스폰된 위치는 : ", self.player.get_location(), "######### \n")
 
         if self._args.sync:
             self.world.tick()
@@ -779,49 +780,40 @@ def game_loop(args):
 
         # 차량 속도 설정
         agent = BasicAgent(world.player, 30)
-        agent.set_target_speed(80)
+        agent.set_target_speed(200)
 
-        # # 맵의 스폰 지점 가져오기
-        # spawn_points = world.map.get_spawn_points()
-        # print("######### 총 " + str(len(spawn_points)) + "개의 스폰포인트 ######### \n")
-        #
+        # 맵의 스폰 지점 가져오기
+        spawn_points = world.map.get_spawn_points()
+
         # # 스폰 지점 랜덤 선택 후 목적지로 설정
-        # # destination = random.choice(spawn_points).location
+        # destination = random.choice(spawn_points).location
         #
-        # # 목적지 위치 설정
-        # # destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
-        # destination = carla.Location(3, -152, 0.03) # Town06 기본 목적지 설정
+        # # 목적 지점 사용자 설정
+        # destination = carla.Location(3.0, -152.19, 0.03)
         #
         # # 목적지 경로 설정
         # agent.set_destination(destination)
 
+        ## destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
+
         # 좌표 리스트 생성
         coords = [
-            (35.5000, -23.5000, 0.03),
-            (29.10114258, -23.66969727, 0.03),
-            (23.80326416, -23.83102051, 0.03),
-            (15.93711304, -24.05556152, 0.03),
-            (10.74207764, -26.4500, 0.03),
-            (9.27413574, -30.56651404, 0.03),
-            (9.27413574, -36.36651404, 0.03),
-            (9.27413574, -41.566514648, 0.03),
-            (9.27413574, -50.366514648, 0.03),
-            (9.27413574, -61.266514648, 0.03),
-            (-5.77, 44.6, 0.03),
-            (9.27413574, -70.000, 0.03),
-            (9.27413574, -80.000, 0.03),
-            (9.27413574, -90.000, 0.03),
-            (9.27413574, -100.000, 0.03),
-            (10.07413574, -109.4651464, 0.03),
-            (10.53281738, -116.48056641, 0.03),
-            (11.03859619, -121.67415039, 0.03),
-            (13.4094104, -129.83527344, 0.03),
-            (15.28406616, -141.01099609, 0.03),
-            (10.40459351, -147.85853516, 0.03),
+            (115.44, -17.60, 0.03),
+            (-179.86, -19.75, 0.03),
+            (-364.34, 109.25, 0.03),
+            (-155.16, 245.15, 0.03),
+            (-155.16, 143.65, 0.03),
+            (-225.64, 46.35, 0.03),
+            (-77.84, 46.35, 0.03),
+            (62.66, 46.35, 0.03),
+            (180.34, 47,40, 0.03),
+            (438.54, -17.60, 0.03),
+            (115.44, -17.60, 0.03),
+            (6.48, -49.93, 0.03),
             (3.0000, -152.1900, 0.03)
         ]
 
-        # 커스텀 루트 플랜
+        # 커스텀 루트 실행
         agent.set_custom_route(coords)
 
         # 목적지 좌표 출력
