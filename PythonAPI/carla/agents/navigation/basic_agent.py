@@ -14,7 +14,8 @@ sys.path.append('C:\\Users\\kj746\\carla\\PythonAPI\\carla\\agents\\navigation\\
 
 import carla
 from shapely.geometry import Polygon
-from agents.navigation.local_planner import LocalPlanner, RoadOption
+from agents.navigation.local_planner import LocalPlanner
+from agents.navigation.local_planner import RoadOption # RoadOption 추가를 위한 RoadOption 클래스 임포트
 from agents.navigation.global_route_planner import GlobalRoutePlanner
 from agents.tools.misc import (get_speed, is_within_distance,
                                get_trafficlight_trigger_location,
@@ -140,7 +141,7 @@ class BasicAgent(object):
         """Get method for protected member local planner"""
         return self._global_planner
 
-    # Set the specified route
+    # Set the custom route
     def set_custom_route(self, coordinates, clean_queue=True):
 
         # 언리얼 상 좌표 값을 carla.위치로 저장
@@ -150,33 +151,56 @@ class BasicAgent(object):
             locations = carla.Location(crds[0], crds[1], crds[2])  # 좌표값 carla.location 객체화
             carla_locations.append(locations)  # carla.locations 배열에 저장
 
-        # carla 위치를 웨이포인트로 저장
+        # carla.위치 to 웨이포인트
         waypoints = []
 
         for location in carla_locations:
             waypoint = self._map.get_waypoint(location)
             waypoints.append(waypoint)
 
-        # 동작 웨이포인트 [(waypoint, RoadOption)] 저장을 위한 route_trace 생성
-        route_trace = []
+        # 활성 웨이포인트 리스트 생성
+        active_waypoints = []
 
-        # waypoints 리스트에서 순차적으로 trace_route 호출
-        for i in range(len(waypoints) - 1):
-            start_waypoint = waypoints[i]
-            end_waypoint = waypoints[i + 1]
+        # 웨이포인트 + 로드옵션 => 활성 웨이포인트
+        for i in range(len(waypoints)-1):
+            active_waypoint = (waypoints[i], RoadOption.LANEFOLLOW)
+            active_waypoints.append(active_waypoint)
 
-            # trace_route 호출
-            segment_trace = self.trace_route(start_waypoint, end_waypoint)
+        # 활성 웨이포인트 출력
+        print("======================================================================================")
+        for i in range(len(active_waypoints)-1):
+            print("=====", i, "번째 활성웨이포인트(active_waypoints) 출력\n", active_waypoints[i], "=====")
+        print("======================================================================================")
 
-            # segment_trace를 route_trace에 추가
-            route_trace.extend(segment_trace)
+        route_trace = active_waypoints
 
-        # 웨이포인트 반환 개수 받아오기
-        print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
 
-        # 모든 웨이포인트 출력
-        for i, waypoint in enumerate(route_trace):
-            print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
+
+        ##################################################################################################
+        # # 활성 웨이포인트 [(waypoint, RoadOption)] 저장을 위한 route_trace 생성
+        # route_trace = []
+        #
+        # # waypoints 리스트에서 순차적으로 trace_route 호출
+        # for i in range(len(waypoints) - 1):
+        #     start_waypoint = waypoints[i]
+        #     end_waypoint = waypoints[i + 1]
+        #
+        #     # trace_route 호출
+        #     segment_trace = self.trace_route(start_waypoint, end_waypoint)
+        #
+        #     # segment_trace를 route_trace에 추가
+        #     route_trace.extend(segment_trace)
+        ##################################################################################################
+
+        ##################################################################################################
+        # # 웨이포인트 반환 개수 받아오기
+        # print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
+        #
+        # # 모든 동작 웨이포인트 출력
+        # for i, waypoint in enumerate(route_trace):
+        #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
+        ##################################################################################################
+
 
         # 웨이포인트 리스트를 전달하여 주행 플랜 동작
         self._local_planner.set_global_plan(route_trace, clean_queue=clean_queue)
@@ -201,13 +225,19 @@ class BasicAgent(object):
             clean_queue = False
 
         ### 최단 거리 루트 설정 ###
-
         # 시작점과 도착점의 좌표값을 웨이포인트로 반환
         start_waypoint = self._map.get_waypoint(start_location)
         end_waypoint = self._map.get_waypoint(end_location)
 
         # trace_route() 시작점과 도착점 사이의 웨이포인트 리스트 반환
         route_trace = self.trace_route(start_waypoint, end_waypoint)
+
+        # # 웨이포인트 반환 개수 받아오기
+        # print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
+        #
+        # # 모든 동작 웨이포인트 출력
+        # for i, waypoint in enumerate(route_trace):
+        #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
 
         # 웨이포인트 리스트를 전달하여 주행 플랜 동작
         self._local_planner.set_global_plan(route_trace, clean_queue=clean_queue)
