@@ -191,7 +191,8 @@ class World(object):
             # spawn_Location = carla.Location(-126.060703,138.844150,0.3) # Town06 긴 경로
             # spawn_Rotation = carla.Rotation(0.000000, -0.027893, 0.000000) # (0.000000, 0.027893, 0.000000) #transform Rotation 파라미터 설정
 
-            spawn_Location = carla.Location(115.44, -17.60, 0.03) # set_custom_route 테스트
+            spawn_Location = carla.Location(115.44, -22.70, 0.03)
+            # spawn_Location = carla.Location(115.44, -17.60, 0.03) # set_custom_route 테스트
             spawn_point = carla.Transform(spawn_Location) #플레이어 스폰 지점 좌표 설정
 
             # 액터 스폰
@@ -797,20 +798,27 @@ def game_loop(args):
         ## destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
 
         # 좌표 리스트 생성
+        # coords = [
+        #     (115.44, -22.70, 0.03),
+        #     (78.44, -12.60, 0.03),
+        #     (45.74, -19.70, 0.03),
+        #     (1.76, -46.75, 0.03)
+        # ]
+
         coords = [
             (115.44, -17.60, 0.03),
             (-179.86, -19.75, 0.03),
-            (-364.34, 109.25, 0.03),
-            (-155.16, 245.15, 0.03),
-            (-155.16, 143.65, 0.03),
-            (-225.64, 46.35, 0.03),
-            (-77.84, 46.35, 0.03),
-            (62.66, 46.35, 0.03),
-            (180.34, 47,40, 0.03),
-            (438.54, -17.60, 0.03),
-            (115.44, -17.60, 0.03),
-            (6.48, -49.93, 0.03),
-            (3.0000, -152.1900, 0.03)
+            # (-364.34, 109.25, 0.03),
+            # (-155.16, 245.15, 0.03),
+            # (-155.16, 143.65, 0.03),
+            # (-225.64, 46.35, 0.03),
+            # (-77.84, 46.35, 0.03),
+            # (62.66, 46.35, 0.03),
+            # (180.34, 47, 40, 0.03),
+            # (438.54, -17.60, 0.03),
+            # (115.44, -17.60, 0.03),
+            # (6.48, -49.93, 0.03),
+            # (3.0000, -152.1900, 0.03)
         ]
 
         # 커스텀 루트 실행
@@ -839,12 +847,14 @@ def game_loop(args):
             world.render(display)
             pygame.display.flip()
 
+            args.loop = True  # 목적지에 도달해도 시뮬레이션 종료하지 않음
+
             if agent.done():
                 # agent.loop==TRUE 이면 다음 경로 랜덤 지정
                 if args.loop:
-                    agent.set_destination(random.choice(spawn_points).location)
+                    # agent.set_destination(random.choice(spawn_points).location) # 다음 주행 경로 자동 설정
                     world.hud.notification("Target reached", seconds=4.0)
-                    print("The target has been reached, searching for another target")
+                    print("The target has been reached. Set up a different path")
                 # agent.loop==FALSE 이면 다음 경로 주행 종료
                 else:
                     world.hud.notification("Target reached", seconds=4.0)
