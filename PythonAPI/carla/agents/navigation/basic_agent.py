@@ -144,6 +144,7 @@ class BasicAgent(object):
     # Set the custom route
     def set_custom_route(self, coordinates, clean_queue=True):
 
+
         # 언리얼 상 좌표 값을 carla.위치로 저장
         carla_locations = []
 
@@ -158,25 +159,25 @@ class BasicAgent(object):
             waypoint = self._map.get_waypoint(location)
             waypoints.append(waypoint)
 
+        ##################################################################################################
         # 활성 웨이포인트 리스트 생성
         active_waypoints = []
 
-        # 웨이포인트 + 로드옵션 => 활성 웨이포인트
-        for i in range(len(waypoints)-1):
-            active_waypoint = (waypoints[i], RoadOption.LANEFOLLOW)
-            active_waypoints.append(active_waypoint)
 
+        # 웨이포인트 + 로드옵션 => 활성 웨이포인트
+        for i in range(len(waypoints)):
+            active_waypoint = (waypoints[i], RoadOption.CHANGELANELEFT)
+            active_waypoints.append(active_waypoint)
         # 활성 웨이포인트 출력
         print("======================================================================================")
-        for i in range(len(active_waypoints)-1):
+        for i in range(len(active_waypoints)):
             print("=====", i, "번째 활성웨이포인트(active_waypoints) 출력\n", active_waypoints[i], "=====")
         print("======================================================================================")
 
         route_trace = active_waypoints
-
-
-
         ##################################################################################################
+
+        #################################################################################################
         # # 활성 웨이포인트 [(waypoint, RoadOption)] 저장을 위한 route_trace 생성
         # route_trace = []
         #
@@ -188,9 +189,19 @@ class BasicAgent(object):
         #     # trace_route 호출
         #     segment_trace = self.trace_route(start_waypoint, end_waypoint)
         #
+        #     # 모든 동작 웨이포인트 출력
+        #     for i, waypoint in enumerate(segment_trace):
+        #         print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
+        #     print("#################################################################################################\n")
         #     # segment_trace를 route_trace에 추가
         #     route_trace.extend(segment_trace)
-        ##################################################################################################
+        #################################################################################################
+
+
+        # 웨이포인트 리스트를 전달하여 주행 플랜 동작
+        self._local_planner.set_global_plan(route_trace, clean_queue=clean_queue)
+
+
 
         ##################################################################################################
         # # 웨이포인트 반환 개수 받아오기
@@ -200,10 +211,11 @@ class BasicAgent(object):
         # for i, waypoint in enumerate(route_trace):
         #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
         ##################################################################################################
-
-
-        # 웨이포인트 리스트를 전달하여 주행 플랜 동작
-        self._local_planner.set_global_plan(route_trace, clean_queue=clean_queue)
+    def driving_standby(self):
+        standby_point = self._local_planner.target_waypoint
+        active_waypoint = [(standby_point, RoadOption.VOID)]
+        clean_queue = True
+        self._local_planner.set_global_plan(active_waypoint, clean_queue=clean_queue)
 
     def set_destination(self, end_location, start_location = None): # 시작 위치 디폴트 None
         """

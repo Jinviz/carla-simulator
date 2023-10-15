@@ -21,6 +21,7 @@ import numpy.random as random
 import re
 import sys
 import weakref
+# from CarlaGUI.Carla_GUI import NPC_Manager
 
 try:
     import pygame
@@ -133,12 +134,13 @@ class World(object):
         self._weather_index = 0
         self._actor_filter = args.filter
         self._actor_generation = args.generation
+        self.spawn_point = None
         self.restart(args)
         self.world.on_tick(hud.on_world_tick)
         self.recording_enabled = False
         self.recording_start = 0
 
-    def restart(self, args):
+    def restart(self, args, location=None):
         """Restart the world"""
         # Keep same camera config if the camera manager exists.
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
@@ -167,7 +169,8 @@ class World(object):
 
         # Spawn the player.
         if self.player is not None:
-            spawn_point = self.player.get_transform()
+            # spawn_point = self.player.get_transform()
+            spawn_point = location
             spawn_point.location.z += 2.0
             spawn_point.rotation.roll = 0.0
             spawn_point.rotation.pitch = 0.0
@@ -194,6 +197,7 @@ class World(object):
             spawn_Location = carla.Location(115.44, -22.70, 0.03)
             # spawn_Location = carla.Location(115.44, -17.60, 0.03) # set_custom_route 테스트
             spawn_point = carla.Transform(spawn_Location) #플레이어 스폰 지점 좌표 설정
+            self.spawn_point = spawn_point
 
             # 액터 스폰
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
@@ -770,6 +774,7 @@ def game_loop(args):
         if args.agent == "Basic":
             agent = BasicAgent(world.player, 30)
             agent.follow_speed_limits(True)
+            agent.set_target_speed(200)  # 차량 제한 속도 설정: 200km
         elif args.agent == "Constant":
             agent = ConstantVelocityAgent(world.player, 30)
             ground_loc = world.world.ground_projection(world.player.get_location(), 5)
@@ -779,35 +784,25 @@ def game_loop(args):
         elif args.agent == "Behavior":
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
-        # 차량 속도 설정
-        agent = BasicAgent(world.player, 30)
-        agent.set_target_speed(200)
+        # 첫 경로를 스폰 지점으로 임의 설정 = 대기 상태
+        agent.driving_standby()
 
-        # 맵의 스폰 지점 가져오기
-        spawn_points = world.map.get_spawn_points()
-
-        # # 스폰 지점 랜덤 선택 후 목적지로 설정
-        # destination = random.choice(spawn_points).location
+        # ## Carla_GUI Module
+        # coords = [] # 경로 좌표 저장을 위한 리스트 생성
         #
-        # # 목적 지점 사용자 설정
-        # destination = carla.Location(3.0, -152.19, 0.03)
+        # carlaGUI = NPC_Manager()
+        # new_coords = carlaGUI.route_data
         #
-        # # 목적지 경로 설정
-        # agent.set_destination(destination)
+        #
+        # if coords != new_coords:
+        #     coords = new_coords
+        #     world.restart(args, coords[0]) # 해당 경로의 시작점에 플레이어 스폰
+        #     agent.set_custom_route(coords)
 
-        ## destination = carla.Location(-65.452431, -14997.158203, 0.03) #Town06 언리얼과 카라의 동일한 좌표계 현성의 좌표
 
-        # 좌표 리스트 생성
         # coords = [
-        #     (115.44, -22.70, 0.03),
-        #     (78.44, -12.60, 0.03),
-        #     (45.74, -19.70, 0.03),
-        #     (1.76, -46.75, 0.03)
-        # ]
-
-        coords = [
-            (115.44, -17.60, 0.03),
-            (-179.86, -19.75, 0.03),
+        #     (115.44, -17.60, 0.03),
+            # (-179.86, -19.75, 0.03),
             # (-364.34, 109.25, 0.03),
             # (-155.16, 245.15, 0.03),
             # (-155.16, 143.65, 0.03),
@@ -819,18 +814,18 @@ def game_loop(args):
             # (115.44, -17.60, 0.03),
             # (6.48, -49.93, 0.03),
             # (3.0000, -152.1900, 0.03)
-        ]
+        # ]
 
-        # 커스텀 루트 실행
-        agent.set_custom_route(coords)
+        # # 커스텀 루트 실행
+        # agent.set_custom_route(coords)
 
-        # 목적지 좌표 출력
-        print("######### 설정한 목적지는 : ",
-            carla.Location(
-            coords[len(coords)-1][0],
-            coords[len(coords)-1][1],
-            coords[len(coords)-1][2]
-            ), "######### \n")
+        # # 목적지 좌표 출력
+        # print("######### 설정한 목적지는 : ",
+        #     carla.Location(
+        #     coords[len(coords)-1][0],
+        #     coords[len(coords)-1][1],
+        #     coords[len(coords)-1][2]
+        #     ), "######### \n")
 
         clock = pygame.time.Clock()
 
