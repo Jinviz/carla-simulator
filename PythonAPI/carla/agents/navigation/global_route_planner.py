@@ -90,16 +90,6 @@ class GlobalRoutePlanner(object):
                         destination_index = self._find_closest_in_list(destination_waypoint, path)
                         if closest_index > destination_index:
                             break
-
-            for i in range(len(route_trace) - 1):
-                print("=====", i, "번째 route_trace ", route_trace[i], "========")
-                print("========================================================")
-
-            print("======================================================================================")
-            print("========= route_trace type : ", type(route_trace), "=========")
-            print("========= route_trace[0] type : ", type(route_trace[0]), "=========")
-            print("======================================================================================")
-
         return route_trace
 
     def _build_topology(self):

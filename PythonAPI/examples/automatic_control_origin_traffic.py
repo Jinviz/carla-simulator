@@ -305,38 +305,38 @@ class World(object):
             if actor is not None:
                 actor.destroy()
 
-    def get_cur_all_traffic_state(self):
-        # self.change_idx = 0
-        #
-        # for a,i in enumerate(self.result_tl):
-        #         print("each group 1st set state Green ")
-        #         i[self.change_idx].set_state(carla.TrafficLightState.Green)
-        #         i[self.change_idx].freeze(True)
-        #         print(i[self.change_idx])
-        #
-        #
-        # for a,i in enumerate(self.result_tl):
-        #     for j in range(len(i)):
-        #         if j == self.change_idx:
-        #             print("cur idx : ", j)
-        #             break
-        #         i[j].freeze(False)
-        #
-        # for a, i in enumerate(self.result_tl):
-        #     for j in range(len(i)):
-        #         print(a, i[j].is_frozen(), i[j].get_state())
-
-        for i in (range(1,len(self.Result_Tl_Group))):
-            for j in range(len(self.Result_Tl_Group[i])):
-                self.Result_Tl_Group[i][j].set_state(carla.TrafficLightState.Red)
-
-        for i in self.Result_Tl_Group[0]:
-                i.set_state(carla.TrafficLightState.Green)
-
-        for i in (range(0,len(self.Result_Tl_Group))):
-            for j in range(0,len(self.Result_Tl_Group[i])):
-                print(i, self.Result_Tl_Group[i][j].get_state())
-
+    # def get_cur_all_traffic_state(self):
+    #     # self.change_idx = 0
+    #     #
+    #     # for a,i in enumerate(self.result_tl):
+    #     #         print("each group 1st set state Green ")
+    #     #         i[self.change_idx].set_state(carla.TrafficLightState.Green)
+    #     #         i[self.change_idx].freeze(True)
+    #     #         print(i[self.change_idx])
+    #     #
+    #     #
+    #     # for a,i in enumerate(self.result_tl):
+    #     #     for j in range(len(i)):
+    #     #         if j == self.change_idx:
+    #     #             print("cur idx : ", j)
+    #     #             break
+    #     #         i[j].freeze(False)
+    #     #
+    #     # for a, i in enumerate(self.result_tl):
+    #     #     for j in range(len(i)):
+    #     #         print(a, i[j].is_frozen(), i[j].get_state())
+    #
+    #     for i in (range(1,len(self.Result_Tl_Group))):
+    #         for j in range(len(self.Result_Tl_Group[i])):
+    #             self.Result_Tl_Group[i][j].set_state(carla.TrafficLightState.Red)
+    #
+    #     for i in self.Result_Tl_Group[0]:
+    #             i.set_state(carla.TrafficLightState.Green)
+    #
+    #     for i in (range(0,len(self.Result_Tl_Group))):
+    #         for j in range(0,len(self.Result_Tl_Group[i])):
+    #             print(i, self.Result_Tl_Group[i][j].get_state())
+    #
 
 # ==============================================================================
 # -- KeyboardControl -----------------------------------------------------------
@@ -855,14 +855,14 @@ def game_loop(args):
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
 
-        duration = group_per_duration  # 그룹별 duration이 담긴 list
-        duration_time_idx = []
-
-        for i in range(len(group_per_duration)):
-            duration_time_idx.append(0)  # phase 0부터.
-
-        InitTime = time.time()
-        Init_end_time = InitTime - start_time
+        # duration = group_per_duration  # 그룹별 duration이 담긴 list
+        # duration_time_idx = []
+        #
+        # for i in range(len(group_per_duration)):
+        #     duration_time_idx.append(0)  # phase 0부터.
+        #
+        # InitTime = time.time()
+        # Init_end_time = InitTime - start_time
 
         # Set the agent destination
         spawn_points = world.map.get_spawn_points()

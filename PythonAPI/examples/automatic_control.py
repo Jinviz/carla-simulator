@@ -21,7 +21,7 @@ import numpy.random as random
 import re
 import sys
 import weakref
-# from CarlaGUI.Carla_GUI import NPC_Manager
+# import CarlaGUI.Carla_GUI as CarlaGUI
 
 try:
     import pygame
@@ -140,7 +140,7 @@ class World(object):
         self.recording_enabled = False
         self.recording_start = 0
 
-    def restart(self, args, location=None):
+    def restart(self, args, start_point=None):
         """Restart the world"""
         # Keep same camera config if the camera manager exists.
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
@@ -169,8 +169,8 @@ class World(object):
 
         # Spawn the player.
         if self.player is not None:
-            # spawn_point = self.player.get_transform()
-            spawn_point = location
+            spawn_point = self.player.get_transform()
+            # spawn_point = start_point
             spawn_point.location.z += 2.0
             spawn_point.rotation.roll = 0.0
             spawn_point.rotation.pitch = 0.0
@@ -773,7 +773,7 @@ def game_loop(args):
         controller = KeyboardControl(world)
         if args.agent == "Basic":
             agent = BasicAgent(world.player, 30)
-            agent.follow_speed_limits(True)
+            agent.follow_speed_limits(False) # 속도 제한 해제
             agent.set_target_speed(200)  # 차량 제한 속도 설정: 200km
         elif args.agent == "Constant":
             agent = ConstantVelocityAgent(world.player, 30)
@@ -785,39 +785,36 @@ def game_loop(args):
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
         # 첫 경로를 스폰 지점으로 임의 설정 = 대기 상태
-        agent.driving_standby()
+        # agent.driving_standby()
 
         # ## Carla_GUI Module
         # coords = [] # 경로 좌표 저장을 위한 리스트 생성
         #
-        # carlaGUI = NPC_Manager()
-        # new_coords = carlaGUI.route_data
-        #
-        #
         # if coords != new_coords:
         #     coords = new_coords
         #     world.restart(args, coords[0]) # 해당 경로의 시작점에 플레이어 스폰
-        #     agent.set_custom_route(coords)
+        #     agent.set_custom_route(coords) # 주행 설정
 
 
-        # coords = [
-        #     (115.44, -17.60, 0.03),
-            # (-179.86, -19.75, 0.03),
-            # (-364.34, 109.25, 0.03),
-            # (-155.16, 245.15, 0.03),
-            # (-155.16, 143.65, 0.03),
-            # (-225.64, 46.35, 0.03),
-            # (-77.84, 46.35, 0.03),
-            # (62.66, 46.35, 0.03),
-            # (180.34, 47, 40, 0.03),
-            # (438.54, -17.60, 0.03),
-            # (115.44, -17.60, 0.03),
-            # (6.48, -49.93, 0.03),
-            # (3.0000, -152.1900, 0.03)
-        # ]
+        coords = [
+            (115.44, -17.60, 0.03),
+            (-179.86, -19.75, 0.03),
+            (-364.34, 109.25, 0.03),
+            (-155.16, 245.15, 0.03),
+            (-155.16, 143.65, 0.03),
+            (-225.64, 46.35, 0.03),
+            (-77.84, 46.35, 0.03),
+            (62.66, 46.35, 0.03),
+            (180.34, 47.40, 0.03),
+            (438.54, -17.60, 0.03),
+            (115.44, -17.60, 0.03),
+            (6.48, -49.93, 0.03),
+            (3.0000, -152.1900, 0.03)
+        ]
+        print(type(coords), coords)
 
-        # # 커스텀 루트 실행
-        # agent.set_custom_route(coords)
+        # 커스텀 루트 실행
+        agent.set_custom_route(coords)
 
         # # 목적지 좌표 출력
         # print("######### 설정한 목적지는 : ",
@@ -843,20 +840,22 @@ def game_loop(args):
             pygame.display.flip()
 
             args.loop = True  # 목적지에 도달해도 시뮬레이션 종료하지 않음
+            loop_flag = False
 
             if agent.done():
-                # agent.loop==TRUE 이면 다음 경로 랜덤 지정
-                if args.loop:
-                    # agent.set_destination(random.choice(spawn_points).location) # 다음 주행 경로 자동 설정
-                    world.hud.notification("Target reached", seconds=4.0)
-                    print("The target has been reached. Set up a different path")
-                # agent.loop==FALSE 이면 다음 경로 주행 종료
-                else:
-                    world.hud.notification("Target reached", seconds=4.0)
-                    print("The target has been reached, stopping the simulation")
-                    print("######### 도착한 지점의 좌표는 : ", world.player.get_location(), "######### \n")
-                    break
-
+                if not loop_flag == False:
+                    # agent.loop==TRUE 이면 다음 경로 랜덤 지정
+                    if args.loop:
+                        # agent.set_destination(random.choice(spawn_points).location) # 다음 주행 경로 자동 설정
+                        world.hud.notification("Target reached", seconds=4.0)
+                        print("The target has been reached. Set up a different path")
+                        loop_flag = True
+                    # agent.loop==FALSE 이면 다음 경로 주행 종료
+                    else:
+                        world.hud.notification("Target reached", seconds=4.0)
+                        print("The target has been reached, stopping the simulation")
+                        print("######### 도착한 지점의 좌표는 : ", world.player.get_location(), "######### \n")
+                        break
             control = agent.run_step()
             control.manual_gear_shift = False
             world.player.apply_control(control)

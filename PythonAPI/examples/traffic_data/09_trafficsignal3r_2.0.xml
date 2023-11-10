@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TrafficSignalController>
+	<Meta>
+		<Name>EDC 3거리</Name>
+		<Version>0.2</Version>	
+		<RoadType>3거리</RoadType>
+		<Location>
+			<Lon>500</Lon>
+			<Lat>500</Lat>
+			<Height>0</Height>
+		</Location>
+	
+		<TrafficLights>
+			<TrafficLight TrafficSignalID="T1" X="" Y="" Z="" type=""/>
+			<TrafficLight TrafficSignalID="T2" X="" Y="" Z="" type=""/>
+			<TrafficLight TrafficSignalID="T3" X="" Y="" Z="" type=""/>
+		</TrafficLights>
+	</Meta>
+
+	<TrafficPhases>
+<TrafficPhase Name="Phase_1" Duration="0">
+			<TrafficSignalState TrafficSignalID="T1" State="Green"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_2" Duration="10">
+			<TrafficSignalState TrafficSignalID="T1" State="Yellow"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_3" Duration="13">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Green"/>
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_4" Duration="23">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Yellow" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_5" Duration="26">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Green"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_6" Duration="36">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Yellow"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_7" Duration="39">
+			<TrafficSignalState TrafficSignalID="T1" State="Green"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+
+		<TrafficPhase Name="Phase_8" Duration="49">
+			<TrafficSignalState TrafficSignalID="T1" State="Yellow"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_9" Duration="52">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Green" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_10" Duration="62">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Yellow" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_11" Duration="65">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Green"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_12" Duration="75">
+			<TrafficSignalState TrafficSignalID="T1" State="Red"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Yellow"/>
+		</TrafficPhase>
+		<TrafficPhase Name="Phase_13" Duration="78">
+			<TrafficSignalState TrafficSignalID="T1" State="Green"/>
+			<TrafficSignalState TrafficSignalID="T2" State="Red" />
+			<TrafficSignalState TrafficSignalID="T3" State="Red"/>
+		</TrafficPhase>
+	</TrafficPhases>
+</TrafficSignalController>

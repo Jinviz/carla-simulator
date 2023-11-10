@@ -160,41 +160,41 @@ class BasicAgent(object):
             waypoints.append(waypoint)
 
         ##################################################################################################
-        # 활성 웨이포인트 리스트 생성
-        active_waypoints = []
-
-
-        # 웨이포인트 + 로드옵션 => 활성 웨이포인트
-        for i in range(len(waypoints)):
-            active_waypoint = (waypoints[i], RoadOption.CHANGELANELEFT)
-            active_waypoints.append(active_waypoint)
-        # 활성 웨이포인트 출력
-        print("======================================================================================")
-        for i in range(len(active_waypoints)):
-            print("=====", i, "번째 활성웨이포인트(active_waypoints) 출력\n", active_waypoints[i], "=====")
-        print("======================================================================================")
-
-        route_trace = active_waypoints
+        # # 활성 웨이포인트 리스트 생성
+        # active_waypoints = []
+        #
+        #
+        # # 웨이포인트 + 로드옵션 => 활성 웨이포인트
+        # for i in range(len(waypoints)):
+        #     active_waypoint = (waypoints[i], RoadOption.CHANGELANELEFT)
+        #     active_waypoints.append(active_waypoint)
+        # # 활성 웨이포인트 출력
+        # print("======================================================================================")
+        # for i in range(len(active_waypoints)):
+        #     print("=====", i, "번째 활성웨이포인트(active_waypoints) 출력\n", active_waypoints[i], "=====")
+        # print("======================================================================================")
+        #
+        # route_trace = active_waypoints
         ##################################################################################################
 
         #################################################################################################
-        # # 활성 웨이포인트 [(waypoint, RoadOption)] 저장을 위한 route_trace 생성
-        # route_trace = []
-        #
-        # # waypoints 리스트에서 순차적으로 trace_route 호출
-        # for i in range(len(waypoints) - 1):
-        #     start_waypoint = waypoints[i]
-        #     end_waypoint = waypoints[i + 1]
-        #
-        #     # trace_route 호출
-        #     segment_trace = self.trace_route(start_waypoint, end_waypoint)
-        #
-        #     # 모든 동작 웨이포인트 출력
-        #     for i, waypoint in enumerate(segment_trace):
-        #         print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
-        #     print("#################################################################################################\n")
-        #     # segment_trace를 route_trace에 추가
-        #     route_trace.extend(segment_trace)
+        # 활성 웨이포인트 [(waypoint, RoadOption)] 저장을 위한 route_trace 생성
+        route_trace = []
+
+        # waypoints 리스트에서 순차적으로 trace_route 호출
+        for i in range(len(waypoints) - 1):
+            start_waypoint = waypoints[i]
+            end_waypoint = waypoints[i + 1]
+
+            # trace_route 호출
+            segment_trace = self.trace_route(start_waypoint, end_waypoint)
+
+            # 모든 동작 웨이포인트 출력
+            # for i, waypoint in enumerate(segment_trace):
+            #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
+            # print("#################################################################################################\n")
+            # segment_trace를 route_trace에 추가
+            route_trace.extend(segment_trace)
         #################################################################################################
 
 
@@ -207,10 +207,11 @@ class BasicAgent(object):
         # # 웨이포인트 반환 개수 받아오기
         # print("######### 총 " + str(len(route_trace)) + "개의 웨이포인트 ######### \n ")
         #
-        # # 모든 동작 웨이포인트 출력
+        # # 모든 활성 웨이포인트 출력
         # for i, waypoint in enumerate(route_trace):
         #     print(f"### {i + 1}번째 웨이포인트 ### \n {waypoint} \n")
         ##################################################################################################
+
     def driving_standby(self):
         standby_point = self._local_planner.target_waypoint
         active_waypoint = [(standby_point, RoadOption.VOID)]
