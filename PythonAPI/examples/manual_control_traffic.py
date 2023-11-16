@@ -90,7 +90,7 @@ import random
 import re
 import weakref
 import time
-import traffic_data_parser
+import traffic_data_parser_origin
 import threading
 
 try:
@@ -150,7 +150,7 @@ path='./traffic_data'
 file_list=os.listdir(path) # xml 파일 리스트
 xml_data =[]
 for i in file_list:
-    xml_data.append(traffic_data_parser.PaseTrafficXmlData(i)) #XmlData Paser 객체들
+    xml_data.append(traffic_data_parser_origin.PaseTrafficXmlData(i)) #XmlData Paser 객체들
 
 group_per_duration=[]
 for i in xml_data:

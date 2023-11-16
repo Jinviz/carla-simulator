@@ -43,6 +43,7 @@ class BasicAgent(object):
 
         """
         self._vehicle = vehicle
+        self.vehicle = vehicle
         self._world = self._vehicle.get_world()
         if map_inst:
             if isinstance(map_inst, carla.Map):

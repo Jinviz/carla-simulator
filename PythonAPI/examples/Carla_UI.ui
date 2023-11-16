@@ -27,7 +27,7 @@
    </property>
    <widget class="QWidget" name="tab_4">
     <attribute name="title">
-     <string>Setting</string>
+     <string>Vehicle Settings</string>
     </attribute>
     <widget class="QGroupBox" name="groupBox_9">
      <property name="geometry">
@@ -35,18 +35,18 @@
        <x>10</x>
        <y>15</y>
        <width>331</width>
-       <height>471</height>
+       <height>411</height>
       </rect>
      </property>
      <property name="title">
-      <string>차량 목록</string>
+      <string>Ego-Vehicle List</string>
      </property>
-     <widget class="QPushButton" name="pushButton_remove_Vehicle">
+     <widget class="QPushButton" name="pushButton_initialize_Vehicle">
       <property name="geometry">
        <rect>
-        <x>182</x>
-        <y>428</y>
-        <width>111</width>
+        <x>170</x>
+        <y>371</y>
+        <width>151</width>
         <height>31</height>
        </rect>
       </property>
@@ -54,32 +54,71 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>초기화</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="pushButton_generate_Vehicle">
-      <property name="geometry">
-       <rect>
-        <x>38</x>
-        <y>428</y>
-        <width>111</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="acceptDrops">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>경로 설정</string>
+       <string>Initialize</string>
       </property>
      </widget>
      <widget class="QTextBrowser" name="VehicleTextBrowser">
       <property name="geometry">
        <rect>
-        <x>20</x>
+        <x>10</x>
+        <y>18</y>
+        <width>311</width>
+        <height>347</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_spawn_Vehicle">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>371</y>
+        <width>151</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Spawn vehicle</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>430</y>
+       <width>331</width>
+       <height>61</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Route Setting</string>
+     </property>
+     <widget class="QPushButton" name="pushButton_apply_Vehicle">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>20</y>
+        <width>121</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Apply route</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="SelectVehicleComboBox">
+      <property name="geometry">
+       <rect>
+        <x>13</x>
         <y>26</y>
-        <width>291</width>
-        <height>391</height>
+        <width>181</width>
+        <height>21</height>
        </rect>
       </property>
      </widget>
@@ -87,7 +126,7 @@
    </widget>
    <widget class="QWidget" name="tab_3">
     <attribute name="title">
-     <string>Location</string>
+     <string>Location Monitoring</string>
     </attribute>
     <widget class="QGroupBox" name="groupBox_8">
      <property name="geometry">
@@ -99,24 +138,24 @@
       </rect>
      </property>
      <property name="title">
-      <string>차량 위치</string>
+      <string>Ego-Vehicle Location</string>
      </property>
      <widget class="QTextBrowser" name="LocationTextBrowser">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>26</y>
-        <width>291</width>
-        <height>401</height>
+        <x>10</x>
+        <y>18</y>
+        <width>311</width>
+        <height>405</height>
        </rect>
       </property>
      </widget>
      <widget class="QComboBox" name="LocationComboBox">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>435</y>
-        <width>291</width>
+        <x>10</x>
+        <y>434</y>
+        <width>311</width>
         <height>22</height>
        </rect>
       </property>
@@ -125,7 +164,7 @@
    </widget>
    <widget class="QWidget" name="tab_5">
     <attribute name="title">
-     <string>Traffic sign</string>
+     <string>Uploading Traffic Sign</string>
     </attribute>
     <widget class="QGroupBox" name="groupBox_10">
      <property name="geometry">
@@ -137,14 +176,14 @@
       </rect>
      </property>
      <property name="title">
-      <string>Traffic Sign Data</string>
+      <string>Attached Data</string>
      </property>
      <widget class="QPushButton" name="pushButton_add_Sign">
       <property name="geometry">
        <rect>
-        <x>26</x>
-        <y>426</y>
-        <width>81</width>
+        <x>10</x>
+        <y>394</y>
+        <width>153</width>
         <height>31</height>
        </rect>
       </property>
@@ -152,25 +191,25 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>추가</string>
+       <string>Add file</string>
       </property>
      </widget>
      <widget class="QTextBrowser" name="trafficSignTextBrowser">
       <property name="geometry">
        <rect>
-        <x>20</x>
-        <y>26</y>
-        <width>291</width>
-        <height>391</height>
+        <x>10</x>
+        <y>19</y>
+        <width>311</width>
+        <height>371</height>
        </rect>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_initialize_Sign">
+     <widget class="QPushButton" name="pushButton_remove_Sign">
       <property name="geometry">
        <rect>
-        <x>124</x>
-        <y>426</y>
-        <width>81</width>
+        <x>168</x>
+        <y>394</y>
+        <width>153</width>
         <height>31</height>
        </rect>
       </property>
@@ -178,15 +217,15 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>초기화</string>
+       <string>Remove All</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_apply_Sign">
       <property name="geometry">
        <rect>
-        <x>224</x>
-        <y>426</y>
-        <width>81</width>
+        <x>10</x>
+        <y>430</y>
+        <width>311</width>
         <height>31</height>
        </rect>
       </property>
@@ -194,7 +233,7 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>적용</string>
+       <string>Apply</string>
       </property>
      </widget>
     </widget>

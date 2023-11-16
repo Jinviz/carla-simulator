@@ -13,12 +13,8 @@ import WeatherManager
 import random
 import time
 import traffic_data_parser
-
-
-
-# sys.path.append('C:/Users/kj746/carla/PythonAPI/examples')
-# os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-import automatic_control as AutoCtrl
+import multiprocessing
+import ego_vehicle_control as EgoVehicle
 
 try:
     # 파이썬에서 참조할 모듈의 경로 및 설정
@@ -32,12 +28,11 @@ except IndexError:
 
 import carla
 from carla import VehicleLightState as vls
-from agents.navigation.basic_agent import BasicAgent
+
 
 # UI파일 연결
 # 단, UI파일은 Python 코드 파일과 같은 디렉토리에 위치해야한다.
 form_class = uic.loadUiType("Carla_UI.ui")[0]
-
 
 class NPC_Manager(object):
 
@@ -58,15 +53,6 @@ class NPC_Manager(object):
         self.all_id = []
         self.carla_package = carla_package
         self.synchronous_master = False
-
-        self.collision_sensor = []
-        self.lane_invasion_sensor = None
-        self.gnss_sensor = None
-        self.camera_manager = None
-        self.map = self.world.get_map()
-        self.vehicle = []
-        self.agent = []
-        self.actor = []
 
 
         # Traffic Manager Init
@@ -240,93 +226,6 @@ class NPC_Manager(object):
             print('spawned %d vehicle, press Ctrl+C to exit.' % (len(self.vehicles_list)))
 
 
-
-class EgoVehicleManager(object):
-    def __init__(self, world, client):
-        """
-        :param world:
-        :param client:
-        """
-        self.world = world
-        self.client = client
-        self.synchronous_master = False
-        self.map = self.world.get_map()
-        self.vehicle = []
-        self.agent = []
-        self.actor = []
-        self.vehicle_list_view = []
-
-
-        # # Traffic Manager Init
-        # self.traffic_manager = client.get_trafficmanager(self.args.tm_port)
-        # self.traffic_manager.set_global_distance_to_leading_vehicle(1.0)    #차량과 차량 사이의 거리 미터단위
-        # if self.args.hybrid:
-        #     self.traffic_manager.set_hybrid_physics_mode(True)
-        #
-        # if self.args.sync:
-        #     settings = self.world.get_settings()
-        #     self.traffic_manager.set_synchronous_mode(True)
-        #     if not settings.synchronous_mode:   #클라이언트와 서버 간의 동기화
-        #         self.synchronous_master = True
-        #         settings.synchronous_mode = True    #true 설정 틱을 기다림
-        #         settings.fixed_delta_seconds = 0.05 #서버(언리얼)와 클라이언트(메뉴얼컨트롤) 사이의 시간
-        #         self.world.apply_settings(settings)
-        #     else:
-        #         self.synchronous_master = False
-
-    def generate_ego_vehicle(self, coords):
-        # Select Vehicle blueprint
-        blueprint_library = self.world.get_blueprint_library()
-        blueprint = random.choice(blueprint_library.filter('vehicle.mercedes.coupe_2020'))
-
-        # 차량 색상 부여
-        blueprint.set_attribute('color', "0,21,81")  # blue color
-        blueprint.set_attribute('role_name', 'hero')
-
-        # 맵의 스폰 지점 정보 가져오기
-        spawn_Location = carla.Location(coords[0][0], coords[0][1], coords[0][2])
-        print("###", spawn_Location)
-        spawn_point = carla.Transform(spawn_Location)
-
-        if not self.map.get_spawn_points():
-            print('There are no spawn points available in your map/town.')
-            print('Please add some Vehicle Spawn Point to yosur UE4 scene.')
-            sys.exit(1)
-
-        # 액터 스폰
-        if not self.vehicle:
-            n = 0
-        else:
-            n = len(self.vehicle)
-        self.vehicle.append(self.world.try_spawn_actor(blueprint, spawn_point))
-        self.agent.append(BasicAgent(self.vehicle[n], 30))  # 에이전트 모듈 연결
-        self.agent[n].follow_speed_limits(False)
-        self.agent[n].set_custom_route(coords)
-        self.agent[n].set_target_speed(200)
-        print("Set vehicle complete")
-        print("액터는 ", self.vehicle[n])
-
-        # while True:
-        for k, vehicle in enumerate(self.vehicle):
-            control = self.agent[k].run_step()
-            control.manual_gear_shift = False
-            vehicle.apply_control(control)
-
-        return self.vehicle
-
-    def destory_ego_vehicle(self):
-        for n in range(len(self.vehicle)):
-            self.vehicle[n].destroy()
-            print(n+1, "번째 차량 파괴")
-
-        self.vehicle.clear()
-        self.agent.clear()
-
-        return self.vehicle
-
-
-
-
 # 화면을 띄우는데 사용되는 Class 선언
 class WindowClass(QMainWindow, form_class):
     def __init__(self, ui_data):
@@ -334,42 +233,56 @@ class WindowClass(QMainWindow, form_class):
         self.ui_data = ui_data
         self.setupUi(self)
 
-        self._vehicle_info_list = []  # 차량 정보 리스트
+        # Variable for vehicle settings
+        self.player = list()
+        self.process = list()
+        self.queue = list()
+        self.player_info = list()
+        self.location = list()
+        for n in range(99):
+            self.location.append([])
+
+        # Variable for vehicle location viewing
         self.timerVar = QTimer()  # 차량 위치 주기적 출력을 위한 QTimer 클래스 인스턴스
         self.timerVar.setInterval(1000)  # 주기적 출력의 인터벌 설정
-        self.timerVar.timeout.connect(self.location_Monitoring)  # 인터벌마다 출력 함수 호출
+        self.timerVar.timeout.connect(self.location_monitoring)  # 인터벌마다 출력 함수 호출
+        # self.timerVar.timeout.connect(self.process_killed)
         self.timerVar.start()
         self.previousIndex = None
+        self.player_location = list()
 
-        self.data_list = []  # 신호등 데이터 파일 리스트
-        self.xml_data = []
-        self.trafficLightDict = []
-        self.Before_traffic_group = []
-        self._tls = {}
-        self.Is_In_group = {}
-        self.Result_Tl_Group = []
-        self.traffic_list = []
+        # Variable for traffic sign data
+        self.data_list = list()  # 신호등 데이터 파일 리스트
+        self.xml_data = list()
+        self.trafficLightDict = list()
+        self.Before_traffic_group = list()
+        self._tls = dict()
+        self.Is_In_group = dict()
+        self.Result_Tl_Group = list()
+        self.traffic_list = list()
 
         # -- 1. Setting
         # 차량 모니터
         self.VehicleTextBrowser.append('')
+        # 선택 차량 경로 설정
+        self.pushButton_apply_Vehicle.clicked.connect(self.route_settings)   # 경로 설정 차량 소환
         # 경로설정 & 초기화
-        self.pushButton_generate_Vehicle.clicked.connect(lambda: self.set_Vehicle("spawn"))   # 경로 설정 차량 소환
-        self.pushButton_remove_Vehicle.clicked.connect(lambda: self.set_Vehicle("destroy"))  # 경로 설정 차량 제거
+        self.pushButton_spawn_Vehicle.clicked.connect(lambda: self.set_vehicle("Spawn"))   # 경로 설정 차량 소환
+        self.pushButton_initialize_Vehicle.clicked.connect(lambda: self.set_vehicle("Initialize"))  # 경로 설정 차량 제거
 
         # -- 2. Location
         # 위치 모니터
         self.LocationTextBrowser.append('')
         # 이전 & 다음
-        self.LocationComboBox.currentIndexChanged.connect(self.location_Monitoring)
+        self.LocationComboBox.currentIndexChanged.connect(self.change_monitoring)
 
         # -- 3. Traffic sign
         # 신호 모니터
         self.trafficSignTextBrowser.append('')
         # 추가 & 초기화
-        self.pushButton_add_Sign.clicked.connect(lambda: self.set_TrafficSign("add"))
-        self.pushButton_apply_Sign.clicked.connect(lambda: self.set_TrafficSign("apply"))
-        self.pushButton_initialize_Sign.clicked.connect(lambda: self.set_TrafficSign("initialize"))
+        self.pushButton_add_Sign.clicked.connect(lambda: self.set_traffic_sign("Add"))
+        self.pushButton_apply_Sign.clicked.connect(lambda: self.set_traffic_sign("Apply"))
+        self.pushButton_remove_Sign.clicked.connect(lambda: self.set_traffic_sign("Remove All"))
 
         # -- 4. Configuration
         # NPC 설정
@@ -396,8 +309,17 @@ class WindowClass(QMainWindow, form_class):
             '--sync',
             action='store_true',
             help='Synchronous mode execution')
-        argparser.add_argument('--host', metavar='H', default='127.0.0.1', help='호스트 서버의 아이피 주소 입력.')
-        argparser.add_argument('--port', metavar='P', default=2000, type=int, help='호스트 서버의 TCP포트 입력.')
+        argparser.add_argument(
+            '--host',
+            metavar='H',
+            default='127.0.0.1',
+            help='호스트 서버의 아이피 주소 입력.')
+        argparser.add_argument(
+            '--port',
+            metavar='P',
+            default=2000,
+            type=int,
+            help='호스트 서버의 TCP포트 입력.')
         argparser.add_argument(
             '--tm-port',
             metavar='P',
@@ -410,8 +332,54 @@ class WindowClass(QMainWindow, form_class):
             default=0,
             type=int,
             help='센서수집을 위한 대상 차량 actor_id')
+        argparser.add_argument(
+            '-v', '--verbose',
+            action='store_true',
+            dest='debug',
+            help='Print debug information')
+        argparser.add_argument(
+            '--res',
+            metavar='WIDTHxHEIGHT',
+            default='1280x720',
+            help='Window resolution (default: 1280x720)')
+        argparser.add_argument(
+            '--filter',
+            metavar='PATTERN',
+            default='vehicle.*',
+            help='Actor filter (default: "vehicle.*")')
+        argparser.add_argument(
+            '--generation',
+            metavar='G',
+            default='2',
+            help='restrict to certain actor generation (values: "1","2","All" - default: "2")')
+        argparser.add_argument(
+            '-l', '--loop',
+            action='store_true',
+            dest='loop',
+            help='Sets a new random destination upon reaching the previous one (default: False)')
+        argparser.add_argument(
+            "-a", "--agent", type=str,
+            choices=["Behavior", "Basic", "Constant"],
+            help="select which agent to run",
+            default="Basic")
+        argparser.add_argument(
+            '-b', '--behavior', type=str,
+            choices=["cautious", "normal", "aggressive"],
+            help='Choose one of the possible agent behaviors (default: normal) ',
+            default='normal')
+        argparser.add_argument(
+            '-s', '--seed',
+            help='Set seed for repeating executions (default: None)',
+            default=None,
+            type=int)
 
         self.args = argparser.parse_args()
+        self.args.width, self.args.height = [int(x) for x in self.args.res.split('x')]
+
+        log_level = logging.DEBUG if self.args.debug else logging.INFO
+        logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
+
+        logging.info('listening to server %s:%s', self.args.host, self.args.port)
         print(self.args.target_id)
 
         # @todo cannot import these directly.
@@ -430,72 +398,105 @@ class WindowClass(QMainWindow, form_class):
         self.target = self.world.get_actor(self.args.target_id)  # 타겟 차량 Actor_id
         self._weather = WeatherManager.Weather(self.world.get_weather(), self.world)
         self._npc = NPC_Manager(self.world, self.client, self.args, self.target, self.carla_package)
-        self._ego = EgoVehicleManager(self.world, self.client)
         self._sun_set = None
         self._weather_set = None
 
-    # 경로 설정 및 차량 생성
-    def set_Vehicle(self, btn):
+    def set_vehicle(self, btn):
+        if btn == "Spawn":
+            queue = multiprocessing.Queue()
+            self.process.append(multiprocessing.Process(target=EgoVehicle.game_loop, args=(self.args, queue)))
+            self.process[-1].start()
+            self.queue.append(queue)
 
-        # 추가 버튼이 눌렸을 때
-        if btn == "spawn":
-            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
-            coords = []  # 파싱 데이터를 저장하기 위한 리스트 생성
-            if filename[0]:
-                print("파일 위치: ", filename[0])
-                with open(filename[0], 'r') as f:
-                    self.route_data = f.read()
-                    print("##### 업로드된 경로 파일 ##### \n", self.route_data)
+            player_id = self.queue[-1].get()  # 소환된 차량 id 공유 메모리를 통해 접근
+            player = self.world.get_actor(player_id)  # 차량 id로 월드에 있는 차량 정보 반환
+            self.player.append(player)  # 차량 정보
+            self.player_info.append(str(self.player[-1]))  # 차량 정보 문자열
+            self.LocationComboBox.addItem(self.player_info[-1])
+            self.SelectVehicleComboBox.addItem(self.player_info[-1])
 
-                data = self.route_data.split("),(")  # 각 좌표의 구분
-                for crds in data:
-                    crds = crds.replace("(", "").replace(")", "")  # 첫번째 좌표와 마지막 좌표 데이터 처리
-                    parts = crds.split(",")  # 각 좌표의 xyz 요소 구분
-                    if len(parts) == 3:
-                        coords.append((float(parts[0]), float(parts[1]), float(parts[2])))
-                        print("경로가 설정되었습니다")
-                    else:
-                        print("데이터 형식이 잘못되었습니다")
-
-                self._vehicle_info_list = self._ego.generate_ego_vehicle(coords)
-
-                # 콤보박스 동기화
-                list = str(self._vehicle_info_list[len(self._vehicle_info_list) - 1])
-                self.LocationComboBox.addItem(list)
-
-            else:
-                print("경로가 설정되지 않았습니다")
 
         # 초기화 버튼이 눌렸을 때
-        elif btn == "destroy":
-            self._vehicle_info_list = self._ego.destory_ego_vehicle()
-            self.LocationComboBox.clear()  # 콤보박스 동기화
+        elif btn == "Initialize":
+            for n, process in enumerate(self.process):
+                process.terminate()
+                self.player[n].destroy()
 
-        # 스폰 차량 목록 출력
+            self.player.clear()
+            self.process.clear()
+            self.queue.clear()
+            self.player_info.clear()
+
+            self.SelectVehicleComboBox.clear()
+            self.LocationComboBox.clear()
+
+        # 스폰된 차량 리스트 출력
         self.VehicleTextBrowser.clear()
-        for list in self._vehicle_info_list:
-            self.VehicleTextBrowser.append(str(list))
+        for info in self.player_info:
+            self.VehicleTextBrowser.append(info)
 
+
+    def route_settings(self):
+        # 적용 버튼이 눌렸을 때
+        select = self.SelectVehicleComboBox.currentIndex()  # 콤보박스에서 선택된 차량 인덱스
+        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
+        coords = []  # 파싱 데이터를 저장하기 위한 리스트 생성
+        if filename[0]:
+            print("파일 위치: ", filename[0])
+            with open(filename[0], 'r') as f:
+                route_data = f.read()
+                print("##### 업로드된 경로 파일 ##### \n", route_data)
+
+            data = route_data.split("),(")  # 각 좌표의 구분
+            for crds in data:
+                crds = crds.replace("(", "").replace(")", "")  # 첫번째 좌표와 마지막 좌표 데이터 처리
+                parts = crds.split(",")  # 각 좌표의 xyz 요소 구분
+                if len(parts) == 3:
+                    coords.append((float(parts[0]), float(parts[1]), float(parts[2])))
+                    print("경로가 설정되었습니다")
+                else:
+                    print("데이터 형식이 잘못되었습니다")
+
+            self.queue[select].put(coords)
+
+        else:
+            print("경로가 설정되지 않았습니다")
+
+    def change_monitoring(self):
+        index = self.LocationComboBox.currentIndex()
+        if index != -1:
+            self.LocationTextBrowser.clear()
+            location = self.location[index]
+            for xyz in location:
+                self.LocationTextBrowser.append(xyz)
 
     # 차량 위치 모니터링
-    def location_Monitoring(self):
+    def location_monitoring(self):
+        # 플레이어의 주행 위치 정보 저장 리스트
+        for n in range(len(self.player)):
+            location = str(self.player[n].get_location())
+            x_val = location.split('x=')[1].split(',')[0]
+            y_val = location.split('y=')[1].split(',')[0]
+            z_val = location.split('z=')[1].split(')')[0]
+            f_location = f"x={x_val}, y={y_val}, z={z_val}"
+
+            self.location[n].append(f_location)
+
         index = self.LocationComboBox.currentIndex()
 
+        # 위치 정보 모니터 출력
         if index != -1:
-            if index != self.previousIndex:
-                self.LocationTextBrowser.clear()
+            self.LocationTextBrowser.append(self.location[index][-1])
 
-            select = self._vehicle_info_list[index]
-            self.LocationTextBrowser.append(str(select.get_location()))
-
-            self.previousIndex = index
         else:
             self.LocationTextBrowser.clear()
 
 
-    def set_TrafficSign(self, btn):
+
+
+    def set_traffic_sign(self, btn):
         # 추가 버튼이 눌렸을 때
-        if btn == "add":
+        if btn == "Add":
             add_file = QtWidgets.QFileDialog.getOpenFileNames(self, 'Select one or more files to open', "", "*.xml")[0]
             if add_file:
                 self.data_list.extend(add_file)
@@ -505,7 +506,7 @@ class WindowClass(QMainWindow, form_class):
                     self.trafficSignTextBrowser.append('')
 
         # 적용 버튼이 눌렸을 때
-        elif btn == "apply":
+        elif btn == "Apply":
             for count, i in enumerate(self.data_list):   # count(=index)값 추가
                 self.xml_data.append(traffic_data_parser.PaseTrafficXmlData(i, count))  # XmlData Paser 객체들
             group_per_duration = []
@@ -562,7 +563,7 @@ class WindowClass(QMainWindow, form_class):
                 print("Error:", str(e))
 
         # 초기화 버튼이 눌렸을 때
-        elif btn == "initialize":
+        elif btn == "Remove All":
             self.data_list = []  # 신호등 데이터 파일 리스트
             self.xml_data = []
             self.trafficLightDict = []
@@ -572,6 +573,25 @@ class WindowClass(QMainWindow, form_class):
             self.Result_Tl_Group = []
             self.traffic_list = []
             self.trafficSignTextBrowser.clear()
+
+    # def process_killed(self):
+    #     for empty_index, q in enumerate(self.queue):
+    #         data = q.get()  # 큐에서 데이터 가져오기
+    #         if data == "kill":  # 프로세스 종료 확인
+    #             del self.palyer[empty_index]
+    #             del self.process[empty_index]
+    #             del self.queue[empty_index]
+    #             del self.palyer_info[empty_index]
+    #             del self.location[empty_index]
+    #
+    #             self.LocationComboBox.clear()
+    #             self.SelectVehicleComboBox.clear()
+    #             self.VehicleTextBrowser.clear()
+    #
+    #             for n in range(len(self.process)):
+    #                 self.LocationComboBox.addItem(self.player_info[n])
+    #                 self.SelectVehicleComboBox.addItem(self.player_info[n])
+    #                 self.VehicleTextBrowser.append(self.player_info[n])
 
 
     # NPC 버튼 클릭 후 값 가져오기
