@@ -140,7 +140,6 @@ class World(object):
         self.spawn_point = None
 
     def restart(self, args):
-        """Restart the world"""
         # Keep same camera config if the camera manager exists.
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
         cam_pos_id = self.camera_manager.transform_index if self.camera_manager is not None else 0
@@ -152,10 +151,8 @@ class World(object):
         # 차량 색상 부여
         if blueprint.has_attribute('color'):
             color = random.choice(blueprint.get_attribute('color').recommended_values)
-            blueprint.set_attribute('color', color)
-        # blueprint.set_attribute('color', "0,21,81") # blue color
+            blueprint.set_attribute('color', color) # blueprint.set_attribute('color', "0,21,81") # Apply blue color
         blueprint.set_attribute('role_name', 'hero')
-
 
         # Spawn the player
         if self.player is not None:
@@ -172,20 +169,14 @@ class World(object):
                 print('Please add some Vehicle Spawn Point to yosur UE4 scene.')
                 sys.exit(1)
 
-            # 스폰 지점 지정
-            # spawn_Location = carla.Location(115.44, -22.70, 0.03)
-            # spawn_point = carla.Transform(spawn_Location) #플레이어 스폰 지점 좌표 설정
-
             # 맵의 스폰 지점 정보 가져오기
             spawn_points = self.map.get_spawn_points()
             # 랜덤으로 스폰 지점 선택
             spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
 
-            self.spawn_point = spawn_point
-
             # 액터 스폰
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
-            # 비차량 차량화
+            # 비차량 스폰 시 차량 물리 법칙 적용
             self.modify_vehicle_physics(self.player)
 
         if self._args.sync:
@@ -754,8 +745,8 @@ def game_loop(args, q):
         controller = KeyboardControl(world)
         if args.agent == "Basic":
             agent = BasicAgent(world.player, 30)
-            agent.follow_speed_limits(False)   # 속도 제한 해제
-            agent.set_target_speed(200)        # 차량 제한 속도 설정: 200km
+            agent.follow_speed_limits(True)   # 속도 제한 해제
+            # agent.set_target_speed(200)        # 차량 제한 속도 설정: 200km
         elif args.agent == "Constant":
             agent = ConstantVelocityAgent(world.player, 30)
             ground_loc = world.world.ground_projection(world.player.get_location(), 5)
@@ -790,11 +781,17 @@ def game_loop(args, q):
             pygame.display.flip()
 
             if not q.empty():
-                crds = q.get()
-                print("######", crds)
-                start = carla.Location(crds[0][0], crds[0][1], crds[0][2])
-                world.player.set_location(start)
-                agent.set_custom_route(crds)
+                data = q.get()
+                if data == "Autopilot Mode":
+                    world.player.set_autopilot(True)
+                else:
+                    crds = data
+                    location = carla.Location(crds[0][0], crds[0][1], crds[0][2])
+                    rotation = carla.Rotation(0.0, 0.0, 0.0)
+                    transform = carla.Transform(location, rotation)
+                    world.player.set_transform(transform)
+
+                    agent.set_custom_route(crds)
 
             control = agent.run_step()
             control.manual_gear_shift = False
@@ -810,7 +807,6 @@ def game_loop(args, q):
             traffic_manager.set_synchronous_mode(True)
 
             world.destroy()
-            q.put("kill")
 
         pygame.quit()
 

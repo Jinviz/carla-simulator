@@ -237,19 +237,16 @@ class WindowClass(QMainWindow, form_class):
         self.player = list()
         self.process = list()
         self.queue = list()
-        self.player_info = list()
-        self.location = list()
-        for n in range(99):
-            self.location.append([])
+        self.player_info = list()  # player 정보 string
 
         # Variable for vehicle location viewing
+        self.location = list()  # 각 차량의 위치 정보
+        for n in range(99):
+            self.location.append(list())
         self.timerVar = QTimer()  # 차량 위치 주기적 출력을 위한 QTimer 클래스 인스턴스
         self.timerVar.setInterval(1000)  # 주기적 출력의 인터벌 설정
         self.timerVar.timeout.connect(self.location_monitoring)  # 인터벌마다 출력 함수 호출
-        # self.timerVar.timeout.connect(self.process_killed)
         self.timerVar.start()
-        self.previousIndex = None
-        self.player_location = list()
 
         # Variable for traffic sign data
         self.data_list = list()  # 신호등 데이터 파일 리스트
@@ -265,7 +262,8 @@ class WindowClass(QMainWindow, form_class):
         # 차량 모니터
         self.VehicleTextBrowser.append('')
         # 선택 차량 경로 설정
-        self.pushButton_apply_Vehicle.clicked.connect(self.route_settings)   # 경로 설정 차량 소환
+        self.pushButton_route_Vehicle.clicked.connect(lambda: self.route_settings("Route"))   # 경로 설정 차량 소환
+        self.pushButton_autopilot_vehicle.clicked.connect(lambda: self.route_settings("Autopilot"))
         # 경로설정 & 초기화
         self.pushButton_spawn_Vehicle.clicked.connect(lambda: self.set_vehicle("Spawn"))   # 경로 설정 차량 소환
         self.pushButton_initialize_Vehicle.clicked.connect(lambda: self.set_vehicle("Initialize"))  # 경로 설정 차량 제거
@@ -415,7 +413,6 @@ class WindowClass(QMainWindow, form_class):
             self.LocationComboBox.addItem(self.player_info[-1])
             self.SelectVehicleComboBox.addItem(self.player_info[-1])
 
-
         # 초기화 버튼이 눌렸을 때
         elif btn == "Initialize":
             for n, process in enumerate(self.process):
@@ -435,32 +432,36 @@ class WindowClass(QMainWindow, form_class):
         for info in self.player_info:
             self.VehicleTextBrowser.append(info)
 
-
-    def route_settings(self):
-        # 적용 버튼이 눌렸을 때
+    def route_settings(self, btn):
         select = self.SelectVehicleComboBox.currentIndex()  # 콤보박스에서 선택된 차량 인덱스
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
-        coords = []  # 파싱 데이터를 저장하기 위한 리스트 생성
-        if filename[0]:
-            print("파일 위치: ", filename[0])
-            with open(filename[0], 'r') as f:
-                route_data = f.read()
-                print("##### 업로드된 경로 파일 ##### \n", route_data)
 
-            data = route_data.split("),(")  # 각 좌표의 구분
-            for crds in data:
-                crds = crds.replace("(", "").replace(")", "")  # 첫번째 좌표와 마지막 좌표 데이터 처리
-                parts = crds.split(",")  # 각 좌표의 xyz 요소 구분
-                if len(parts) == 3:
-                    coords.append((float(parts[0]), float(parts[1]), float(parts[2])))
-                    print("경로가 설정되었습니다")
-                else:
-                    print("데이터 형식이 잘못되었습니다")
+        if btn == "Route":
+            # 적용 버튼이 눌렸을 때
+            filename = QtWidgets.QFileDialog.getOpenFileName(self, 'Open File')
+            coords = []  # 파싱 데이터를 저장하기 위한 리스트 생성
+            if filename[0]:
+                print("파일 위치: ", filename[0])
+                with open(filename[0], 'r') as f:
+                    route_data = f.read()
+                    print("##### 업로드된 경로 파일 ##### \n", route_data)
 
-            self.queue[select].put(coords)
+                data = route_data.split("),(")  # 각 좌표의 구분
+                for crds in data:
+                    crds = crds.replace("(", "").replace(")", "")  # 첫번째 좌표와 마지막 좌표 데이터 처리
+                    parts = crds.split(",")  # 각 좌표의 xyz 요소 구분
+                    if len(parts) == 3:
+                        coords.append((float(parts[0]), float(parts[1]), float(parts[2])))
+                        print("경로가 설정되었습니다")
+                    else:
+                        print("데이터 형식이 잘못되었습니다")
 
-        else:
-            print("경로가 설정되지 않았습니다")
+                self.queue[select].put(coords)
+
+            else:
+                print("경로가 설정되지 않았습니다")
+
+        elif btn == "Autopilot":
+            self.queue[select].put("Autopilot Mode")
 
     def change_monitoring(self):
         index = self.LocationComboBox.currentIndex()
@@ -490,8 +491,6 @@ class WindowClass(QMainWindow, form_class):
 
         else:
             self.LocationTextBrowser.clear()
-
-
 
 
     def set_traffic_sign(self, btn):
@@ -559,8 +558,18 @@ class WindowClass(QMainWindow, form_class):
                 self.trafficSignTextBrowser.append("# -- Xml Parsing Success----------------")
                 self.trafficSignTextBrowser.append("# ======================================")
 
+            except ValueError as ve:
+                # ValueError 예외를 처리하는 코드
+                print("ValueError occurred: ", ve)
+                self.trafficSignTextBrowser.append("# ValueError occurred: ", ve)
+            except FileNotFoundError as fne:
+                # FileNotFoundError 예외를 처리하는 코드
+                print("FileNotFoundError occurred: ", fne)
+                self.trafficSignTextBrowser.append("# FileNotFoundError occurred: ", fne)
             except Exception as e:
-                print("Error:", str(e))
+                # 기타 모든 예외를 처리하는 코드
+                print("Some other Exception occurred: ", e)
+                self.trafficSignTextBrowser.append("# Some other Exception occurred: ", e)
 
         # 초기화 버튼이 눌렸을 때
         elif btn == "Remove All":
@@ -573,26 +582,6 @@ class WindowClass(QMainWindow, form_class):
             self.Result_Tl_Group = []
             self.traffic_list = []
             self.trafficSignTextBrowser.clear()
-
-    # def process_killed(self):
-    #     for empty_index, q in enumerate(self.queue):
-    #         data = q.get()  # 큐에서 데이터 가져오기
-    #         if data == "kill":  # 프로세스 종료 확인
-    #             del self.palyer[empty_index]
-    #             del self.process[empty_index]
-    #             del self.queue[empty_index]
-    #             del self.palyer_info[empty_index]
-    #             del self.location[empty_index]
-    #
-    #             self.LocationComboBox.clear()
-    #             self.SelectVehicleComboBox.clear()
-    #             self.VehicleTextBrowser.clear()
-    #
-    #             for n in range(len(self.process)):
-    #                 self.LocationComboBox.addItem(self.player_info[n])
-    #                 self.SelectVehicleComboBox.addItem(self.player_info[n])
-    #                 self.VehicleTextBrowser.append(self.player_info[n])
-
 
     # NPC 버튼 클릭 후 값 가져오기
     def NPC_Spawn(self):
@@ -636,8 +625,6 @@ class WindowClass(QMainWindow, form_class):
         timestamp = self.world.wait_for_tick().timestamp
         elapsed_time += timestamp.delta_seconds
         self._weather.tick(elapsed_time, self._weather_set, self._sun_set)
-
-
 
 
 

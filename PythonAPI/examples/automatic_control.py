@@ -172,10 +172,6 @@ class World(object):
                 print('Please add some Vehicle Spawn Point to yosur UE4 scene.')
                 sys.exit(1)
 
-            # 스폰 지점 지정
-            # spawn_Location = carla.Location(115.44, -22.70, 0.03)
-            # spawn_point = carla.Transform(spawn_Location) #플레이어 스폰 지점 좌표 설정
-
             # 맵의 스폰 지점 정보 가져오기
             spawn_points = self.map.get_spawn_points()
             # 랜덤으로 스폰 지점 선택
@@ -717,7 +713,7 @@ class CameraManager(object):
 # ==============================================================================
 
 
-def game_loop(args, q):
+def game_loop(args):
     """
     Main loop of the simulation. It handles updating all the HUD information,
     ticking the agent and, if needed, the world.
@@ -754,8 +750,8 @@ def game_loop(args, q):
         controller = KeyboardControl(world)
         if args.agent == "Basic":
             agent = BasicAgent(world.player, 30)
-            agent.follow_speed_limits(False)   # 속도 제한 해제
-            agent.set_target_speed(200)        # 차량 제한 속도 설정: 200km
+            agent.follow_speed_limits(True)   # 속도 제한 해제: False
+            # agent.set_target_speed(200)        # 차량 제한 속도 설정: 200km
         elif args.agent == "Constant":
             agent = ConstantVelocityAgent(world.player, 30)
             ground_loc = world.world.ground_projection(world.player.get_location(), 5)
@@ -767,14 +763,12 @@ def game_loop(args, q):
 
         clock = pygame.time.Clock()
 
-        world.hud.notification("Vehicle standby state", seconds=4.0)
-        print("경로를 설정하십시오")
+        # Set the agent destination
+        spawn_points = world.map.get_spawn_points()
+        destination = random.choice(spawn_points).location
+        agent.set_destination(destination)
 
-        agent.driving_standby()   # 스폰된 후 해당 위치에 대기
-
-        player_id = world.player.id
-        queue = q
-        queue.put(player_id)
+        clock = pygame.time.Clock()
 
         while True:
             clock.tick()
@@ -789,12 +783,14 @@ def game_loop(args, q):
             world.render(display)
             pygame.display.flip()
 
-            if not q.empty():
-                crds = q.get()
-                print("######", crds)
-                start = carla.Location(crds[0][0], crds[0][1], crds[0][2])
-                world.player.set_location(start)
-                agent.set_custom_route(crds)
+            if agent.done():
+                if args.loop:
+                    agent.set_destination(random.choice(spawn_points).location)
+                    world.hud.notification("Target reached", seconds=4.0)
+                    print("The target has been reached, searching for another target")
+                else:
+                    print("The target has been reached, stopping the simulation")
+                    break
 
             control = agent.run_step()
             control.manual_gear_shift = False
@@ -899,5 +895,4 @@ def main():
 
 
 if __name__ == '__main__':
-    import Carla_GUI
     main()

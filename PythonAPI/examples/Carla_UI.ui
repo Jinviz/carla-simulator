@@ -35,7 +35,7 @@
        <x>10</x>
        <y>15</y>
        <width>331</width>
-       <height>411</height>
+       <height>381</height>
       </rect>
      </property>
      <property name="title">
@@ -45,7 +45,7 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>371</y>
+        <y>338</y>
         <width>151</width>
         <height>31</height>
        </rect>
@@ -63,7 +63,7 @@
         <x>10</x>
         <y>18</y>
         <width>311</width>
-        <height>347</height>
+        <height>311</height>
        </rect>
       </property>
      </widget>
@@ -71,7 +71,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>371</y>
+        <y>338</y>
         <width>151</width>
         <height>31</height>
        </rect>
@@ -88,20 +88,30 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>430</y>
+       <y>400</y>
        <width>331</width>
-       <height>61</height>
+       <height>91</height>
       </rect>
      </property>
      <property name="title">
       <string>Route Setting</string>
      </property>
-     <widget class="QPushButton" name="pushButton_apply_Vehicle">
+     <widget class="QComboBox" name="SelectVehicleComboBox">
       <property name="geometry">
        <rect>
-        <x>200</x>
+        <x>10</x>
         <y>20</y>
-        <width>121</width>
+        <width>311</width>
+        <height>21</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_autopilot_vehicle">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>50</y>
+        <width>151</width>
         <height>31</height>
        </rect>
       </property>
@@ -109,17 +119,23 @@
        <bool>false</bool>
       </property>
       <property name="text">
-       <string>Apply route</string>
+       <string>Autopilot Mode</string>
       </property>
      </widget>
-     <widget class="QComboBox" name="SelectVehicleComboBox">
+     <widget class="QPushButton" name="pushButton_route_Vehicle">
       <property name="geometry">
        <rect>
-        <x>13</x>
-        <y>26</y>
-        <width>181</width>
-        <height>21</height>
+        <x>10</x>
+        <y>50</y>
+        <width>151</width>
+        <height>31</height>
        </rect>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="text">
+       <string>Route Setting</string>
       </property>
      </widget>
     </widget>
@@ -164,7 +180,7 @@
    </widget>
    <widget class="QWidget" name="tab_5">
     <attribute name="title">
-     <string>Uploading Traffic Sign</string>
+     <string>Traffic Sign Settings</string>
     </attribute>
     <widget class="QGroupBox" name="groupBox_10">
      <property name="geometry">

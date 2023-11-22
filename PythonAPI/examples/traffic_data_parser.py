@@ -1,13 +1,8 @@
 import xml.etree.ElementTree as ET
-import re
-import time
-import os
 
 class PaseTrafficXmlData:
     def __init__(self, file_name, index):
-        # self.tree = ET.parse('./traffic_data/'+file_name)
         self.tree = ET.parse(file_name)
-        # self.group_num =int(file_name[0:2])
         self.group_num = index
         self.root = self.tree.getroot()
         self.Traffic_Signal_Controller =[]
@@ -15,7 +10,6 @@ class PaseTrafficXmlData:
         self.TrafficPhases=[]
         self.TrafficPhase_list=[]
         self.Duration=[]
-        #self.State = {}
         self.State_list=[]
         self.TrafficLights=[]
 
