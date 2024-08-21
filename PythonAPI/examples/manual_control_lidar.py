@@ -1163,15 +1163,19 @@ class CameraManager(object):
             self.sensor.listen(lambda image: CameraManager._parse_image(weak_self, image))
 
             # 비동기 쓰레딩으로 Lidar Data 저장 함수 periodic 실행
-            if self.thread_running == False:
-                if self.sensors[index][-1].id == "sensor.lidar.ray_cast":
-                    thread = threading.Thread(target=self.save_lidar_data)
-                    thread.start()
-                    self.thread_running = True
+            self.asynchronous_running(index)
 
         if notify:
             self.hud.notification(self.sensors[index][2])
         self.index = index
+    
+    def asynchronous_running(self, sensor_index):
+        # 비동기 쓰레딩으로 Lidar Data 저장 함수 periodic 실행
+        if self.thread_running == False:
+            if self.sensors[sensor_index][-1].id == "sensor.lidar.ray_cast":
+                thread = threading.Thread(target=self.save_lidar_data)
+                thread.start()
+                self.thread_running = True
 
     def save_lidar_data(self):
         # print(f"save_lidar_data in thread: {threading.current_thread().name}")
@@ -1324,7 +1328,7 @@ def game_loop(args):
         if world is not None:
             world.destroy()
 
-        pygame.quit()
+        pygame.quit
 
 
 # ==============================================================================
