@@ -1134,8 +1134,20 @@ class CameraManager(object):
 
                 for attr_name, attr_value in item[3].items():
                     bp.set_attribute(attr_name, attr_value)
+                    bp.set_attribute('channels', '64')  # 채널 수
+                    bp.set_attribute('points_per_second', '900000')  # 초당 130만 포인트
+                    bp.set_attribute('range', '100')  # 최대 150m 거리
+                    bp.set_attribute('rotation_frequency', '20')  # 1초에 20회 회전
+                    bp.set_attribute('upper_fov', '20')  # 상단 시야각 20도
+                    bp.set_attribute('lower_fov', '-30')  # 하단 시야각 -30도
                     if attr_name == 'range':
                         self.lidar_range = float(attr_value)
+                    print(bp.get_attribute('points_per_second'))
+                    print(bp.get_attribute('channels'))
+                    print(bp.get_attribute('range'))
+                    print(bp.get_attribute('rotation_frequency'))
+                    print(bp.get_attribute('upper_fov'))
+                    print(bp.get_attribute('lower_fov'))
 
             item.append(bp)
         self.index = None
@@ -1182,7 +1194,7 @@ class CameraManager(object):
         
         # Set directory root
         current_map = ['town01', 'town02', 'town03', 'town05', 'town10']
-        save_dir = f'C:/Users/USER/CarlaUE5/PythonAPI/examples/lidar_data/{current_map[0]}'
+        save_dir = f'C:/Users/USER/CarlaUE5/PythonAPI/examples/lidar_data/{current_map[4]}'
 
         file_name = f"{self.filename:06d}"
         lidar_dir = os.path.join(save_dir, 'lidar', f"{file_name}.npy")
