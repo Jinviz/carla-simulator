@@ -266,8 +266,10 @@ class World(object):
                 print('There are no spawn points available in your map/town.')
                 print('Please add some Vehicle Spawn Point to your UE5 scene.')
                 sys.exit(1)
-            spawn_points = self.map.get_spawn_points()
-            spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            # spawn_points = self.map.get_spawn_points()
+            # spawn_point = random.choice(spawn_points) if spawn_points else carla.Transform()
+            spawn_point = carla.Transform(carla.Location(111,-39,10))
+            # print(spawn_point)
             self.player = self.world.try_spawn_actor(blueprint, spawn_point)
             self.show_vehicle_telemetry = False
             self.modify_vehicle_physics(self.player)
@@ -1086,7 +1088,7 @@ class CameraManager(object):
         if not self._parent.type_id.startswith("walker.pedestrian"):
             self._camera_transforms = [
                 (carla.Transform(carla.Location(x=-2.0*bound_x, y=+0.0*bound_y, z=2.0*bound_z), carla.Rotation(pitch=8.0)), Attachment.SpringArmGhost),
-                (carla.Transform(carla.Location(x=+0.8*bound_x, y=+0.0*bound_y, z=1.3*bound_z)), Attachment.Rigid),
+                (carla.Transform(carla.Location(x=+0.0*bound_x, y=+0.0*bound_y, z=2.3*bound_z)), Attachment.Rigid),
                 (carla.Transform(carla.Location(x=+1.9*bound_x, y=+1.0*bound_y, z=1.2*bound_z)), Attachment.SpringArmGhost),
                 (carla.Transform(carla.Location(x=-2.8*bound_x, y=+0.0*bound_y, z=4.6*bound_z), carla.Rotation(pitch=6.0)), Attachment.SpringArmGhost),
                 (carla.Transform(carla.Location(x=-1.0, y=-1.0*bound_y, z=0.4*bound_z)), Attachment.Rigid)]
@@ -1137,9 +1139,9 @@ class CameraManager(object):
                     bp.set_attribute('channels', '64')  # 채널 수
                     bp.set_attribute('points_per_second', '900000')  # 초당 130만 포인트
                     bp.set_attribute('range', '100')  # 최대 150m 거리
-                    bp.set_attribute('rotation_frequency', '20')  # 1초에 20회 회전
+                    bp.set_attribute('rotation_frequency', '60')  # 1초에 20회 회전
                     bp.set_attribute('upper_fov', '20')  # 상단 시야각 20도
-                    bp.set_attribute('lower_fov', '-30')  # 하단 시야각 -30도
+                    bp.set_attribute('lower_fov', '-30')  # 하단 시야각 -50도
                     if attr_name == 'range':
                         self.lidar_range = float(attr_value)
                     print(bp.get_attribute('points_per_second'))
@@ -1154,6 +1156,8 @@ class CameraManager(object):
 
     def toggle_camera(self):
         self.transform_index = (self.transform_index + 1) % len(self._camera_transforms)
+        print(self.transform_index)
+        print(self.index)
         self.set_sensor(self.index, notify=False, force_respawn=True)
 
     def set_sensor(self, index, notify=True, force_respawn=False):
@@ -1174,6 +1178,7 @@ class CameraManager(object):
             weak_self = weakref.ref(self)
             self.sensor.listen(lambda image: CameraManager._parse_image(weak_self, image))
 
+            print(self._camera_transforms[self.transform_index][0])
             # 비동기 쓰레딩으로 Lidar Data 저장 함수 periodic 실행
             self.asynchronous_running(index)
 
@@ -1193,8 +1198,8 @@ class CameraManager(object):
         # print(f"save_lidar_data in thread: {threading.current_thread().name}")
         
         # Set directory root
-        current_map = ['town01', 'town02', 'town03', 'town05', 'town10']
-        save_dir = f'C:/Users/USER/CarlaUE5/PythonAPI/examples/lidar_data/{current_map[4]}'
+        current_map = ['town01', 'town02', 'town03', 'town05', 'town10', 'etri']
+        save_dir = f'C:/Users/USER/CarlaUE5/PythonAPI/examples/lidar_data/{current_map[-1]}'
 
         file_name = f"{self.filename:06d}"
         lidar_dir = os.path.join(save_dir, 'lidar', f"{file_name}.npy")
@@ -1205,9 +1210,10 @@ class CameraManager(object):
             np.save(lidar_dir, self.lidar_output_data)
             
             with open(coords_dir, "w") as file:
-                file.write(f"{self.sensor.get_location()}")
+                file.write(f"{self.sensor.get_transform()}")
 
             self.filename += 1
+            print(f"Data length: {len(self.lidar_output_data)}")
             print(f"Saved: {save_dir}:{file_name}")
 
         threading.Timer(1, self.save_lidar_data).start()
